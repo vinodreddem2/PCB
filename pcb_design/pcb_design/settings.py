@@ -12,6 +12,13 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 from pathlib import Path
 from datetime import timedelta 
+from os import environ
+
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -39,8 +46,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    'rest_framework_simplejwt',
-    'rest_framework_simplejwt.token_blacklist',
+    'rest_framework_simplejwt',    
+    # 'rest_framework_simplejwt.token_blacklist',
     'right_to_draw',
     'authentication',
     'masters',
@@ -82,12 +89,35 @@ WSGI_APPLICATION = 'pcb_design.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
+
+import os
+
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+        'ENGINE': 'mssql',
+        'NAME': os.getenv('DB_NAME', 'PCB4'),
+        'USER': environ.get('DB_USER', 'admin'),
+        'PASSWORD': environ.get('DB_PASSWORD', 'Server.2'),
+        'HOST': environ.get('DB_HOST', 'localhost\SQLEXPRESS'),
+        'PORT': '',
+        'OPTIONS': {
+            'autocommit': True,
+            'driver': 'ODBC Driver 17 for SQL Server',
+            'extra_params': 'DataTypeCompatibility=80;MARS Connection=True;',
+            'use_legacy_date_fields': True,
+        },
+    },
 }
+
+# https://www.dundas.com/support/learning/documentation/installation/how-to-enable-sql-server-authentication#:~:text=In%20the%20Object%20Explorer%2C%20right,the%20server%20and%20click%20Properties.&text=On%20the%20Security%20page%20under,mode%20and%20then%20click%20OK.&text=In%20the%20Object%20Explorer%2C%20right%2Dclick%20your%20server%20and%20click,it%20must%20also%20be%20restarted.
+
 
 
 # Password validation
@@ -125,7 +155,7 @@ REST_FRAMEWORK = {
 }
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(seconds=120),
+    'ACCESS_TOKEN_LIFETIME': timedelta(seconds=60*60),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
     'ROTATE_REFRESH_TOKENS': True,
     'BLACKLIST_AFTER_ROTATION': True,
