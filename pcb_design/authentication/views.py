@@ -7,13 +7,12 @@ from rest_framework import status
 from .serializers import UserSerializer,RegisterSerializer
 from rest_framework.permissions import IsAdminUser
 from .models import CustomUser
-from .custom_permissions import IsAuthorized
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
-
+# from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken, OutstandingToken
 
 class UserRegistrationView(APIView):
-    permission_classes = [IsAdminUser, IsAuthorized]
+    permission_classes = [IsAdminUser]
 
     def post(self, request):
         print(request.data)
@@ -57,7 +56,6 @@ class UserAPIView(APIView):
         users = CustomUser.objects.all()
         serializer = UserSerializer(users, many=True)
         return Response(serializer.data)
-
 
 class UserProfileView(APIView):
     permission_classes = [IsAuthenticated]
