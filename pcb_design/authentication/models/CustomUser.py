@@ -10,6 +10,7 @@ class CustomUser(AbstractUser):
     # ]    
     username = None
     email = models.EmailField(unique=True)
+    is_logged_out = models.BooleanField(default=True)
     # role = models.CharField(ROLE_CHOICES,max_length=100,default='CADesigner')
     
    
