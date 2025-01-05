@@ -1,10 +1,12 @@
 from rest_framework import serializers
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group
 
 from .models import CustomUser
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 from django.contrib.auth.password_validation import validate_password
+
+valid_roles = ['Admin', 'CADesigner', 'Approver', 'Verifier']
 
 class UserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
@@ -15,8 +17,6 @@ class UserSerializer(serializers.ModelSerializer):
     
     def create(self, validated_data):
         return CustomUser.objects.create_user(**validated_data)
-
-
 
  
 class RegisterSerializer(serializers.ModelSerializer):
@@ -44,6 +44,14 @@ class RegisterSerializer(serializers.ModelSerializer):
 
         
         user.set_password(validated_data['password'])
-        user.save()
+        role = self.context.get('role', 'CADesigner')
+        print("vinod role is ", role)
+        if role not in valid_roles:
+            role = 'CADesigner'
+        group, created = Group.objects.get_or_create(name=role)
 
+        # Assign the user to the group
+        user.groups.add(group)
+        user.save()
+        
         return user

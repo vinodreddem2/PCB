@@ -4,19 +4,19 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
 from rest_framework import status
-from .serializers import UserSerializer,RegisterSerializer
-from rest_framework.permissions import IsAdminUser
-from .models import CustomUser
+from .serializers import RegisterSerializer
 from rest_framework.permissions import IsAuthenticated
-from rest_framework_simplejwt.authentication import JWTAuthentication
-# from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken, OutstandingToken
+from datetime import timedelta
+from .custom_permissions import IsAuthorized
+from django.contrib.auth import get_user_model
+
 
 class UserRegistrationView(APIView):
-    permission_classes = [IsAdminUser]
-
+    permission_classes = [IsAuthenticated, IsAuthorized]
     def post(self, request):
         print(request.data)
-        serializer = RegisterSerializer(data=request.data)
+        role = request.data.get('role', 'CADesigner')
+        serializer = RegisterSerializer(data=request.data, context={'role': role})
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -24,12 +24,17 @@ class UserRegistrationView(APIView):
 
 
 class LoginView(APIView):
+    permission_classes = [] 
+    authentication_classes = [] 
+
     def post(self, request):
         email = request.data.get('email')
         password = request.data.get('password')
         user = authenticate(email=email, password=password)
 
         if user:
+            user.is_logged_out = False
+            user.save()
             refresh = RefreshToken.for_user(user)
             return Response({
                 'refresh': str(refresh),
@@ -38,30 +43,12 @@ class LoginView(APIView):
         return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
 
 
-class LogoutView(APIView):
+class LogoutView(APIView):    
     def post(self, request):
-        try:
-            refresh_token = request.data.get('refresh')
-            token = RefreshToken(refresh_token)
-            token.blacklist()
+        try:             
+            user = request.user            
+            user.is_logged_out = True
+            user.save()            
             return Response({'message': 'Logout successful'}, status=status.HTTP_200_OK)
         except Exception as e:
-            return Response({'error': 'Invalid token'}, status=status.HTTP_400_BAD_REQUEST)
-
-
-class UserAPIView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-        users = CustomUser.objects.all()
-        serializer = UserSerializer(users, many=True)
-        return Response(serializer.data)
-
-class UserProfileView(APIView):
-    permission_classes = [IsAuthenticated]
-    authentication_classes = [JWTAuthentication]
-
-    def get(self, request):
-        user = request.user
-        serializer = UserSerializer(user)
-        return Response(serializer.data)
+            return Response({'error': f'Invalid token -- {e}'}, status=status.HTTP_400_BAD_REQUEST)
