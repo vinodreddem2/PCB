@@ -7,7 +7,7 @@ import uuid
 class MstCategory(BaseModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     category_name = models.CharField(max_length=255)
-    component_Id = models.ForeignKey(MstComponent, on_delete=models.CASCADE, related_name='cpmponent_categories')
+    component_Id = models.ForeignKey(MstComponent, on_delete=models.CASCADE, related_name='component_categories')
     
     class Meta:
         unique_together = ('category_name', 'component_Id')  
