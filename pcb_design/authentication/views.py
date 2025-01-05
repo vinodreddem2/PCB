@@ -12,8 +12,6 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 # from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken, OutstandingToken
 
 class UserRegistrationView(APIView):
-    permission_classes = [IsAdminUser]
-
     def post(self, request):
         print(request.data)
         serializer = RegisterSerializer(data=request.data)
@@ -25,6 +23,7 @@ class UserRegistrationView(APIView):
 
 class LoginView(APIView):
     def post(self, request):
+        print('Inside teh Log in View Post')
         email = request.data.get('email')
         password = request.data.get('password')
         user = authenticate(email=email, password=password)
@@ -46,6 +45,7 @@ class LogoutView(APIView):
             token.blacklist()
             return Response({'message': 'Logout successful'}, status=status.HTTP_200_OK)
         except Exception as e:
+            print(e)
             return Response({'error': 'Invalid token'}, status=status.HTTP_400_BAD_REQUEST)
 
 

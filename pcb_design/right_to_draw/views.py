@@ -8,3 +8,8 @@ class ComponentCategoryAPIView(APIView):
         categories = MstCategory.objects.filter(component_id=component_id)
         serializer = CategorySerializer(categories, many=True)
         return Response(serializer.data)
+    
+    # [{id:,category_name:,sub_category:[{id:,name:}]}]
+    
+    # Services.py ---> Create a fn based on requirement 
+    # MSTCategory ----> Each Cat get SubCategories (id,name) ---> [{id:,name:,sub_category:[{id:,name:}]}]

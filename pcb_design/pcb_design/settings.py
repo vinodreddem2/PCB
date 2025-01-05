@@ -102,7 +102,7 @@ import os
 DATABASES = {
     'default': {
         'ENGINE': 'mssql',
-        'NAME': os.getenv('DB_NAME', 'PCB4'),
+        'NAME': os.getenv('DB_NAME', 'PCB'),
         'USER': environ.get('DB_USER', 'admin'),
         'PASSWORD': environ.get('DB_PASSWORD', 'Server.2'),
         'HOST': environ.get('DB_HOST', 'localhost\SQLEXPRESS'),
@@ -145,14 +145,14 @@ AUTH_PASSWORD_VALIDATORS = [
 #     # ...
 # ]
 
-REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
-    ),
-    'DEFAULT_PERMISSION_CLASSES': (
-        'rest_framework.permissions.IsAuthenticated',  # Default permission class
-    ),
-}
+# REST_FRAMEWORK = {
+    # 'DEFAULT_AUTHENTICATION_CLASSES': (
+    #     'rest_framework_simplejwt.authentication.JWTAuthentication',
+    # ),
+    # 'DEFAULT_PERMISSION_CLASSES': (
+    #     'rest_framework.permissions.IsAuthenticated',  # Default permission class
+    # ),
+# }
 
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(seconds=60*60),
