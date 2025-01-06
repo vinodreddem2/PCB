@@ -20,6 +20,6 @@ from django.urls import path,include
 urlpatterns = [
     # create path for authentication app
     path('auth/', include('authentication.urls')),
-    path('right_to_draw/', include('right_to_draw.urls')),
+    path('draw_right/', include('right_to_draw.urls')),
     path('admin/', admin.site.urls),
 ]
