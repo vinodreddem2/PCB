@@ -14,7 +14,7 @@ from pathlib import Path
 from datetime import timedelta 
 import os 
 from dotenv import load_dotenv
-import dj_database_url
+# import dj_database_url
 # Load environment variables from .env file
 load_dotenv()
 
@@ -32,9 +32,10 @@ SECRET_KEY = 'django-insecure-jawafdzu&qb#a(n#udlvf*9_oqv$o%_=znvu9v#pp6kri=2(2o
 # SECURITY WARNING: don't run with debug turned on in production!
 
 DEBUG = True
+ALLOWED_HOSTS = []
 
-ALLOWED_HOSTS = ["127.0.0.1","localhost"]
-ALLOWED_HOSTS+=os.getenv("ALLOWED_HOSTS", "").split(",")
+# ALLOWED_HOSTS = ["127.0.0.1","localhost"]
+# ALLOWED_HOSTS+=os.getenv("ALLOWED_HOSTS", "").split(",")
 
 # Application definition
 
@@ -54,7 +55,6 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    # 'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -89,17 +89,6 @@ WSGI_APPLICATION = 'pcb_design.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': BASE_DIR / 'db.sqlite3',
-#     }
-# }
-
-
-
-
-
 DATABASES = {
     'default': {
         'ENGINE': 'mssql',
@@ -117,9 +106,9 @@ DATABASES = {
     },
 }
 
-DATABASE_URL = os.getenv("DATABASE_URL", "")
-if DATABASE_URL:
-    DATABASES['default'] = dj_database_url.parse(DATABASE_URL, conn_max_age=600, ssl_require=False)
+# DATABASE_URL = os.getenv("DATABASE_URL", "")
+# if DATABASE_URL:
+#     DATABASES['default'] = dj_database_url.parse(DATABASE_URL, conn_max_age=600, ssl_require=False)
 
 # https://www.dundas.com/support/learning/documentation/installation/how-to-enable-sql-server-authentication#:~:text=In%20the%20Object%20Explorer%2C%20right,the%20server%20and%20click%20Properties.&text=On%20the%20Security%20page%20under,mode%20and%20then%20click%20OK.&text=In%20the%20Object%20Explorer%2C%20right%2Dclick%20your%20server%20and%20click,it%20must%20also%20be%20restarted.
 
@@ -143,31 +132,14 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-# AUTHENTICATION_BACKENDS = [
-#     # ...
-#     'django.contrib.auth.backends.ModelBackend',
-#     'authentication.auth.CustomUserModelBackend',
-#     # ...
-# ]
-
-# REST_FRAMEWORK = {
-    # 'DEFAULT_AUTHENTICATION_CLASSES': (
-    #     'rest_framework_simplejwt.authentication.JWTAuthentication',
-    # ),
-    # 'DEFAULT_PERMISSION_CLASSES': (
-    #     'rest_framework.permissions.IsAuthenticated',  # Default permission class
-    # ),
-# }
-
-SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(seconds=60*60),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
-    'ROTATE_REFRESH_TOKENS': True,
-    'BLACKLIST_AFTER_ROTATION': True,
-    'AUTH_HEADER_TYPES': ('Bearer',),
-    'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'authentication.custom_authentication.CustomJWTAuthentication',
+    ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        'authentication.custom_permissions.IsAuthorized',  # Default permission class
+    ),
 }
-
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
