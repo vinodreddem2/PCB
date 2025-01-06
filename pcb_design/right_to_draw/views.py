@@ -3,8 +3,9 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from authentication.custom_permissions import CustomJWTAuthentication, IsAuthorized
 from .services import ComponentHierarchyService
+from authentication.custom_permissions import IsAuthorized
+from authentication.custom_authentication import CustomJWTAuthentication
 class ComponentDetailedAPIView(APIView):
     permission_classes = [IsAuthorized]
     authentication_classes = [CustomJWTAuthentication]

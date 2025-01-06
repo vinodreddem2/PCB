@@ -5,12 +5,6 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
 from rest_framework import status
 from .serializers import RegisterSerializer
-from rest_framework.permissions import IsAuthenticated
-from datetime import timedelta
-from .custom_permissions import IsAuthorized
-from django.contrib.auth import get_user_model
-
-
 class UserRegistrationView(APIView):
     def post(self, request):
         print(request.data)
@@ -20,8 +14,6 @@ class UserRegistrationView(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
 class LoginView(APIView):
     permission_classes = [] 
     authentication_classes = [] 
@@ -41,8 +33,6 @@ class LoginView(APIView):
                 'access': str(refresh.access_token),
             })
         return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
-
-
 class LogoutView(APIView):    
     def post(self, request):
         try:             
