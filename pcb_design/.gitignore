@@ -4,5 +4,6 @@
 .env.production.local
 venv
 env
-
+/staticfiles
 __pycache__
+

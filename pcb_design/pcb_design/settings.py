@@ -12,10 +12,9 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 from pathlib import Path
 from datetime import timedelta 
-from os import environ
-
+import os 
 from dotenv import load_dotenv
-
+# import dj_database_url
 # Load environment variables from .env file
 load_dotenv()
 
@@ -31,10 +30,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-jawafdzu&qb#a(n#udlvf*9_oqv$o%_=znvu9v#pp6kri=2(2o'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
 
+DEBUG = True
 ALLOWED_HOSTS = []
 
+# ALLOWED_HOSTS = ["127.0.0.1","localhost"]
+# ALLOWED_HOSTS+=os.getenv("ALLOWED_HOSTS", "").split(",")
 
 # Application definition
 
@@ -47,7 +48,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'rest_framework_simplejwt',    
-    # 'rest_framework_simplejwt.token_blacklist',
     'right_to_draw',
     'authentication',
     'masters',
@@ -89,23 +89,13 @@ WSGI_APPLICATION = 'pcb_design.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': BASE_DIR / 'db.sqlite3',
-#     }
-# }
-
-import os
-
-
 DATABASES = {
     'default': {
         'ENGINE': 'mssql',
-        'NAME': os.getenv('DB_NAME', 'PCB4'),
-        'USER': environ.get('DB_USER', 'admin'),
-        'PASSWORD': environ.get('DB_PASSWORD', 'Server.2'),
-        'HOST': environ.get('DB_HOST', 'localhost\SQLEXPRESS'),
+        'NAME': os.getenv('DB_NAME', 'PCB'),
+        'USER': os.getenv('DB_USER', 'admin'),
+        'PASSWORD': os.getenv('DB_PASSWORD', 'Server.2'),
+        'HOST': os.getenv('DB_HOST', 'localhost\SQLEXPRESS'),
         'PORT': '',
         'OPTIONS': {
             'autocommit': True,
@@ -115,6 +105,10 @@ DATABASES = {
         },
     },
 }
+
+# DATABASE_URL = os.getenv("DATABASE_URL", "")
+# if DATABASE_URL:
+#     DATABASES['default'] = dj_database_url.parse(DATABASE_URL, conn_max_age=600, ssl_require=False)
 
 # https://www.dundas.com/support/learning/documentation/installation/how-to-enable-sql-server-authentication#:~:text=In%20the%20Object%20Explorer%2C%20right,the%20server%20and%20click%20Properties.&text=On%20the%20Security%20page%20under,mode%20and%20then%20click%20OK.&text=In%20the%20Object%20Explorer%2C%20right%2Dclick%20your%20server%20and%20click,it%20must%20also%20be%20restarted.
 
@@ -138,31 +132,14 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-# AUTHENTICATION_BACKENDS = [
-#     # ...
-#     'django.contrib.auth.backends.ModelBackend',
-#     'authentication.auth.CustomUserModelBackend',
-#     # ...
-# ]
-
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'authentication.custom_permissions.CustomJWTAuthentication',
+        'authentication.custom_authentication.CustomJWTAuthentication',
     ),
     'DEFAULT_PERMISSION_CLASSES': (
-        'rest_framework.permissions.IsAuthenticated',  # Default permission class
+        'authentication.custom_permissions.IsAuthorized',  # Default permission class
     ),
 }
-
-SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(seconds=60*60),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
-    'ROTATE_REFRESH_TOKENS': True,
-    'BLACKLIST_AFTER_ROTATION': True,
-    'AUTH_HEADER_TYPES': ('Bearer',),
-    'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
-}
-
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
@@ -179,7 +156,9 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
