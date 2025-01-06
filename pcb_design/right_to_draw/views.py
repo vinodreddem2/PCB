@@ -1,15 +1,27 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from masters.models import MstCategory
-from .serializers import CategorySerializer
-
-class ComponentCategoryAPIView(APIView):
-    def get(self, request, component_id, format=None):
-        categories = MstCategory.objects.filter(component_id=component_id)
-        serializer = CategorySerializer(categories, many=True)
-        return Response(serializer.data)
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from authentication.custom_permissions import CustomJWTAuthentication, IsAuthorized
+from .services import ComponentHierarchyService
+class ComponentDetailedAPIView(APIView):
+    permission_classes = [IsAuthorized]
+    authentication_classes = [CustomJWTAuthentication]
     
-    # [{id:,category_name:,sub_category:[{id:,name:}]}]
-    
-    # Services.py ---> Create a fn based on requirement 
-    # MSTCategory ----> Each Cat get SubCategories (id,name) ---> [{id:,name:,sub_category:[{id:,name:}]}]
+    def get(self, request, component_id):
+        
+        try:
+            
+            response = ComponentHierarchyService.get_hierarchy_by_component_id(component_id)
+            
+            return Response(response["data"], status=status.HTTP_200_OK) 
+            
+        except Exception as e:
+            return Response(
+                {
+                    "error": "Failed to retrieve component",
+                    "detail": str(e)
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )

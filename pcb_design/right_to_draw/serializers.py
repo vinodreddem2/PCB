@@ -34,7 +34,7 @@ class CADDesignTemplatesSerializer(serializers.ModelSerializer):
     class Meta:
         model = CADDesignTemplates
         fields = '__all__'        
-class Component_Category_SubCategory_Serializer(serializers.Serializer):
+class ComponentHierarchySerializer(serializers.Serializer):
     id = serializers.UUIDField()
     name = serializers.CharField()
     categories = serializers.ListField()
@@ -52,6 +52,8 @@ class Component_Category_SubCategory_Serializer(serializers.Serializer):
                         {
                             "id": sub_category.id,
                             "name": sub_category.sub_category_name,
+                            "is_design_options": getattr(sub_category.subcategory.first(), "is_design_options", False),
+                            "is_sub_2_category": getattr(sub_category.subcategory.first(), "is_sub_2_category", False),
                         }
                         for sub_category in category.subcategories.all()
                     ],

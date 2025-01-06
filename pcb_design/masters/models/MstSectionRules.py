@@ -1,10 +1,9 @@
-import uuid
 from django.db import models
 from .BaseModel import BaseModel
 
 
 class MstSectionRules(BaseModel):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.AutoField(primary_key=True,editable=False)
     design_doc = models.TextField()
     rule_number = models.CharField(max_length=50, unique=True)
     parameter = models.CharField(max_length=255)
