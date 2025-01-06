@@ -1,5 +1,5 @@
 from masters.models import MstComponent
-from .serializers import ComponentHierarchySerializer
+from .serializers import CustomComponentSerializer
 class ComponentHierarchyService:
     @staticmethod
     def get_hierarchy_by_component_id(component_id):
@@ -16,7 +16,7 @@ class ComponentHierarchyService:
             ).get(id=component_id)
 
             # Serialize the component hierarchy
-            serialized_data = ComponentHierarchySerializer.from_model(component)
+            serialized_data = CustomComponentSerializer.from_model(component)
             return {"success": True, "data": serialized_data}
 
         except MstComponent.DoesNotExist:
