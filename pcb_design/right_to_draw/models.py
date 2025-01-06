@@ -1,6 +1,8 @@
 from django.db import models
 from masters.models.MstComponet import MstComponent
 from masters.models.BaseModel import BaseModel
+
+
 class CADDesignTemplates(BaseModel):    
     opp_number = models.CharField(max_length=255, unique=True)
     opu_number = models.CharField(max_length=255, unique=True)

@@ -1,26 +1,39 @@
+from django.http import Http404
+
 from masters.models import MstComponent
-from .serializers import CustomComponentSerializer
-class ComponentHierarchyService:
-    @staticmethod
-    def get_hierarchy_by_component_id(component_id):
-        """
-        Fetch the component hierarchy based on the given component_id.
+from masters.models import MstSectionGroupings, MstSubCategoryTwo
 
-        :param component_id: UUID of the component.
-        :return: Serialized component hierarchy data or an error message.
-        """
-        try:
-            # Fetch the component by id
-            component = MstComponent.objects.prefetch_related(
-                "component_categories__subcategories__subcategory"
-            ).get(id=component_id)
 
-            # Serialize the component hierarchy
-            serialized_data = CustomComponentSerializer.from_model(component)
-            return {"success": True, "data": serialized_data}
+def get_categories_for_component_id(component_id):
+    try:
+        component = MstComponent.objects.prefetch_related(
+            'component_categories',
+            'component_categories__subcategories'
+        ).get(id=component_id)
 
-        except MstComponent.DoesNotExist:
-            return {"success": False, "error": f"Component with id {component_id} does not exist."}
+        categories = component.component_categories.all()
 
-        except Exception as e:
-            return {"success": False, "error": str(e)}
+        result = []
+        
+        for category in categories:            
+            subcategories = category.subcategories.all()
+            subcategory_data = [
+                {
+                    'id': subcategory.id,
+                    'name': subcategory.name,
+                    'is_section_groupings_exists': MstSectionGroupings.objects.filter(subcategory=subcategory).exists(),
+                    'is_sub_2_categories_exists': MstSubCategoryTwo.objects.filter(subcategory=subcategory).exists()
+                }
+                for subcategory in subcategories
+            ]
+            result.append({
+                'category_id': category.id,
+                'category_name': category.name,
+                'subcategories': subcategory_data
+            })
+
+        return result
+        
+    except MstComponent.DoesNotExist:
+
+        raise Http404("Component with the given ID does not exist.")

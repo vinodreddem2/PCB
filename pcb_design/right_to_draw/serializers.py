@@ -1,39 +1,56 @@
 from .models import MstComponent
 from rest_framework import serializers
-from masters.models import MstSubCategory,MstCategory, MstSectionRules, MstDesignOptions
+from masters.models import MstSubCategory,MstCategory, MstSectionRules, MstSectionGroupings
 from .models import CADDesignTemplates
+
+
 class ComponentSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = MstComponent
         fields = '__all__'
+
+
 class CategorySerializer(serializers.ModelSerializer):
     component_Id = ComponentSerializer()  # Nested serializer
+
     class Meta:
         model = MstCategory
         fields = '__all__'
+
+
 class SubCategorySerializer(serializers.ModelSerializer):
     category_Id = CategorySerializer()  # Nested serializer
 
     class Meta:
         model = MstSubCategory
         fields = '__all__'
+
+
 class SectionRulesSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = MstSectionRules
         fields = '__all__'        
+
+
 class DesignOptionsSerializer(serializers.ModelSerializer):
     Rules = SectionRulesSerializer(many=True)
     SubCategories = SubCategorySerializer(many=True)
 
     class Meta:
-        model = MstDesignOptions
+        model = MstSectionGroupings
         fields = '__all__'
+
+
 class CADDesignTemplatesSerializer(serializers.ModelSerializer):
     component_Id = ComponentSerializer()  # Nested serializer
 
     class Meta:
         model = CADDesignTemplates
         fields = '__all__'        
+
+
 class CustomSubCategorySerializer(serializers.Serializer):
     id = serializers.IntegerField(read_only=True)
     name = serializers.CharField(source="sub_category_name")
@@ -42,13 +59,15 @@ class CustomSubCategorySerializer(serializers.Serializer):
 
     @staticmethod
     def from_model(sub_category):
-        subcategory_relation = sub_category.subcategory.first()  # Assuming one-to-one relationship
+        subcategory_relation = sub_category.subcategory.first()
         return {
             "id": sub_category.id,
             "name": sub_category.sub_category_name,
             "is_design_options": getattr(subcategory_relation, "is_design_options", False),
             "is_sub_2_category": getattr(subcategory_relation, "is_sub_2_category", False),
         }
+
+
 class CustomCategorySerializer(serializers.Serializer):
     id = serializers.IntegerField(read_only=True)
     name = serializers.CharField(source="category_name")
@@ -64,6 +83,8 @@ class CustomCategorySerializer(serializers.Serializer):
                 for sub_category in category.subcategories.all()
             ],
         }
+
+
 class CustomComponentSerializer(serializers.Serializer):
     id = serializers.IntegerField(read_only=True)
     name = serializers.CharField(source="component_name")

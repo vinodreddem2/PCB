@@ -4,7 +4,7 @@ from .BaseModel import BaseModel
 
 class MstSectionRules(BaseModel):
     id = models.AutoField(primary_key=True,editable=False)
-    design_doc = models.TextField()
+    design_doc = models.CharField(max_length=255)
     rule_number = models.CharField(max_length=50, unique=True)
     parameter = models.CharField(max_length=255)
     min_value = models.FloatField()
