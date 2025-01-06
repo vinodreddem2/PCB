@@ -34,10 +34,40 @@ class CADDesignTemplatesSerializer(serializers.ModelSerializer):
     class Meta:
         model = CADDesignTemplates
         fields = '__all__'        
-class ComponentHierarchySerializer(serializers.Serializer):
-    id = serializers.UUIDField()
-    name = serializers.CharField()
-    categories = serializers.ListField()
+class CustomSubCategorySerializer(serializers.Serializer):
+    id = serializers.IntegerField(read_only=True)
+    name = serializers.CharField(source="sub_category_name")
+    is_design_options = serializers.BooleanField()
+    is_sub_2_category = serializers.BooleanField()
+
+    @staticmethod
+    def from_model(sub_category):
+        subcategory_relation = sub_category.subcategory.first()  # Assuming one-to-one relationship
+        return {
+            "id": sub_category.id,
+            "name": sub_category.sub_category_name,
+            "is_design_options": getattr(subcategory_relation, "is_design_options", False),
+            "is_sub_2_category": getattr(subcategory_relation, "is_sub_2_category", False),
+        }
+class CustomCategorySerializer(serializers.Serializer):
+    id = serializers.IntegerField(read_only=True)
+    name = serializers.CharField(source="category_name")
+    sub_categories = CustomSubCategorySerializer(many=True)
+
+    @staticmethod
+    def from_model(category):
+        return {
+            "id": category.id,
+            "name": category.category_name,
+            "sub_categories": [
+                CustomSubCategorySerializer.from_model(sub_category)
+                for sub_category in category.subcategories.all()
+            ],
+        }
+class CustomComponentSerializer(serializers.Serializer):
+    id = serializers.IntegerField(read_only=True)
+    name = serializers.CharField(source="component_name")
+    categories = CustomCategorySerializer(many=True)
 
     @staticmethod
     def from_model(component):
@@ -45,19 +75,7 @@ class ComponentHierarchySerializer(serializers.Serializer):
             "id": component.id,
             "name": component.component_name,
             "categories": [
-                {
-                    "id": category.id,
-                    "name": category.category_name,
-                    "sub_categories": [
-                        {
-                            "id": sub_category.id,
-                            "name": sub_category.sub_category_name,
-                            "is_design_options": getattr(sub_category.subcategory.first(), "is_design_options", False),
-                            "is_sub_2_category": getattr(sub_category.subcategory.first(), "is_sub_2_category", False),
-                        }
-                        for sub_category in category.subcategories.all()
-                    ],
-                }
+                CustomCategorySerializer.from_model(category)
                 for category in component.component_categories.all()
             ],
         }
