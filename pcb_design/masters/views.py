@@ -9,6 +9,7 @@ from right_to_draw.serializers import ComponentSerializer
 from authentication.custom_permissions import IsAuthorized
 from authentication.custom_authentication import CustomJWTAuthentication
 
+
 class Components(APIView):
     permission_classes = [IsAuthorized]
     authentication_classes = [CustomJWTAuthentication]

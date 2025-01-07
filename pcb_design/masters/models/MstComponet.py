@@ -1,7 +1,5 @@
 from django.db import models
-
 from .BaseModel import BaseModel
-
 
 
 class MstComponent(BaseModel):

@@ -1,6 +1,7 @@
 from django.db import models
-
 from authentication.models import CustomUser
+
+
 class BaseModel(models.Model):
     created_by = models.ForeignKey(CustomUser, on_delete=models.DO_NOTHING, related_name='%(class)s_created_by')
     created_at = models.DateTimeField(auto_now_add=True)
@@ -9,4 +10,3 @@ class BaseModel(models.Model):
 
     class Meta:
         abstract = True
-

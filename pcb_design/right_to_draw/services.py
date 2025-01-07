@@ -6,7 +6,8 @@ from rest_framework import status
 from masters.models import MstComponent
 from masters.models import MstSectionGroupings, MstSubCategoryTwo
 from masters.models import MstSectionRules
-from .serializers import SectionGroupingsSerializer,SubCategoryTwoSerializer
+from .serializers import SectionGroupingsSerializer,SubCategoryTwoSerializer, CADDesignTemplatesSerializer
+
 
 def get_categories_for_component_id(component_id):
     try:
@@ -61,8 +62,7 @@ def get_section_groupings_for_subcategory_id(sub_category_id):
 
 
 def get_sub_categories_two_for_subcategory_id(sub_category_id):
-    try:
-        
+    try:        
         sub_categories_two = MstSubCategoryTwo.objects.filter(sub_category_id=sub_category_id)
         
         if not sub_categories_two:
@@ -74,3 +74,34 @@ def get_sub_categories_two_for_subcategory_id(sub_category_id):
     except MstSubCategoryTwo.DoesNotExist:
         
         raise Http404("Sub-2 Categories with the given ID does not exist.")
+    
+
+def create_cad_template(data):
+    component_data = data.get('component')
+    component_specifications = data.get('componentSpecifications')
+    design_options = data.get('designOptions')
+    
+    try:
+        component = MstComponent.objects.get(component_id=component_data)
+    except MstComponent.DoesNotExist:
+        return None, {"error": "Component not found."}
+
+    data_for_serializer = {
+        "opp_number": data.get("oppNumber"),
+        "opu_number": data.get("opuNumber"),
+        "edu_number": data.get("eduNumber"),
+        "model_name": data.get("modelName"),
+        "part_number": data.get("partNumber"),
+        "revision_number": data.get("revisionNumber"),
+        "component_Id": component,
+        "pcb_specifications": component_specifications,
+        "smt_design_options": design_options,
+    }
+
+    # Create and validate the serializer
+    serializer = CADDesignTemplatesSerializer(data=data_for_serializer)
+    if serializer.is_valid():        
+        cad_template = serializer.save()
+        return cad_template, None
+    else:        
+        return None, serializer.errors

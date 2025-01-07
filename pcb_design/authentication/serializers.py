@@ -8,6 +8,7 @@ from django.contrib.auth.password_validation import validate_password
 
 valid_roles = ['Admin', 'CADesigner', 'Approver', 'Verifier']
 
+
 class UserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
 

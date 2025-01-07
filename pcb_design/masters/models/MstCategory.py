@@ -1,5 +1,4 @@
 from django.db import models
-
 from .MstComponet import MstComponent
 from .BaseModel import BaseModel
 
