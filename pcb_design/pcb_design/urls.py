@@ -21,5 +21,6 @@ urlpatterns = [
     # create path for authentication app
     path('auth/', include('authentication.urls')),
     path('right-draw/', include('right_to_draw.urls')),
+    path('masters/', include('masters.urls')),
     path('admin/', admin.site.urls),
 ]

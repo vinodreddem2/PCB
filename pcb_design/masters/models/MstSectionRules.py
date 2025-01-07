@@ -1,4 +1,5 @@
 from django.db import models
+
 from .BaseModel import BaseModel
 
 
@@ -12,5 +13,8 @@ class MstSectionRules(BaseModel):
     nominal = models.FloatField()
     comments = models.TextField(blank=True, null=True)
 
+    class Meta:
+        verbose_name = 'Section Rule'
+        verbose_name_plural = 'Section Rules' 
     def __str__(self):
         return f"Rule {self.rule_number}"

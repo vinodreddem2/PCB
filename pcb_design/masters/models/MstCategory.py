@@ -1,4 +1,5 @@
 from django.db import models
+
 from .MstComponet import MstComponent
 from .BaseModel import BaseModel
 
@@ -10,6 +11,7 @@ class MstCategory(BaseModel):
     
     class Meta:
         unique_together = ('category_name', 'component_Id')  
-
+        verbose_name = 'Category'
+        verbose_name_plural = 'Categories'
     def __str__(self):
         return self.category_name
