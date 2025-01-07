@@ -3,9 +3,9 @@ from .BaseModel import BaseModel
 
 
 class MstComponent(BaseModel):
-    id = models.AutoField(primary_key=True,editable=False)
-    component_name = models.CharField(max_length=255, unique=True)
-    description = models.CharField(max_length=255, null=True, blank=True)
+    id = models.AutoField(primary_key=True, editable=False, db_column='ID')
+    component_name = models.CharField(max_length=255, unique=True, db_column='COMPONENT_NAME')
+    description = models.CharField(max_length=255, null=True, blank=True, db_column='DESCRIPTION')
     
     class Meta:
         verbose_name = 'Component'

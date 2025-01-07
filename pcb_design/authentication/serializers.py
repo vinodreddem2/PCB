@@ -11,7 +11,6 @@ valid_roles = ['Admin', 'CADesigner', 'Approver', 'Verifier']
 
 class UserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
-
     class Meta:
         model = CustomUser
         fields = ['id','email', 'password']

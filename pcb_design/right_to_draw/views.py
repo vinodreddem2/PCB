@@ -2,12 +2,14 @@ from django.http import Http404
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
-
+from drf_yasg import openapi
 from authentication.custom_permissions import IsAuthorized
 from authentication.custom_authentication import CustomJWTAuthentication
 from .models import CADDesignTemplates
 from .services import get_categories_for_component_id,get_section_groupings_for_subcategory_id, \
     get_sub_categories_two_for_subcategory_id, create_cad_template
+from drf_yasg.utils import swagger_auto_schema
+from .serializers import CADDesignTemplatesSerializer
 
 
 class ComponentDetailedAPIView(APIView):
@@ -58,8 +60,51 @@ class CADDesignTemplatesAPIView(APIView):
     permission_classes = [IsAuthorized]
     authentication_classes = [CustomJWTAuthentication]
     
-    def post(self, request):        
-        template, error = create_cad_template(request.data)        
+    def get(self, request, *args, **kwargs):        
+        cad_template_id = request.query_params.get('id', None)
+
+        if cad_template_id:
+            try:                
+                cad_template = CADDesignTemplates.objects.get(id=cad_template_id)                
+                serializer = CADDesignTemplatesSerializer(cad_template)
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            except CADDesignTemplates.DoesNotExist:
+                return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+        
+        else:            
+            cad_templates = CADDesignTemplates.objects.all()            
+            serializer = CADDesignTemplatesSerializer(cad_templates, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+    @swagger_auto_schema(
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={
+                'oppNumber': openapi.Schema(type=openapi.TYPE_STRING, description='Opportunity Number'),
+                'opuNumber': openapi.Schema(type=openapi.TYPE_STRING, description='Opu Number'),
+                'eduNumber': openapi.Schema(type=openapi.TYPE_STRING, description='Education Number'),
+                'modelName': openapi.Schema(type=openapi.TYPE_STRING, description='Model Name'),
+                'partNumber': openapi.Schema(type=openapi.TYPE_STRING, description='Part Number'),
+                'revisionNumber': openapi.Schema(type=openapi.TYPE_STRING, description='Revision Number'),
+                'component': openapi.Schema(type=openapi.TYPE_INTEGER, description='Component ID (e.g., b14)'),
+                'componentSpecifications': openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    additional_properties=openapi.Schema(type=openapi.TYPE_STRING, description="Dynamic specification fields")
+                ),
+                'designOptions': openapi.Schema(
+                    type=openapi.TYPE_ARRAY,
+                    items=openapi.Items(type=openapi.TYPE_STRING),
+                    description='Design options (array of strings)'
+                )
+            },
+            required=['oppNumber', 'opuNumber', 'modelName', 'partNumber', 'component'],
+        ),
+        responses={201: 'Template Created', 400: 'Bad Request'}
+    )
+    def post(self, request):
+        user = request.user
+        template, error = create_cad_template(request.data, user)        
         if error:
             return Response(error, status=status.HTTP_400_BAD_REQUEST)
                 

@@ -9,7 +9,7 @@ class ComponentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = MstComponent
-        fields = '__all__'
+        fields = ['id', 'component_name', 'description']
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -32,16 +32,15 @@ class SectionRulesSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = MstSectionRules
-        fields = '__all__'        
+        fields = ['id', 'design_doc', 'rule_number', 'parameter', 'min_value', 'max_value', 'nominal', 'comments']       
 
 
-class CADDesignTemplatesSerializer(serializers.ModelSerializer):
-    component_Id = ComponentSerializer()  # Nested serializer
-
+class CADDesignTemplatesSerializer(serializers.ModelSerializer):       
     class Meta:
         model = CADDesignTemplates
-        fields = '__all__'        
+        fields = '__all__'
 
+   
 
 class SectionGroupingsSerializer(serializers.ModelSerializer):
     rules = SectionRulesSerializer(many=True)
@@ -51,12 +50,10 @@ class SectionGroupingsSerializer(serializers.ModelSerializer):
         fields = ['id', 'design_doc', 'design_name', 'rules']
         
 
-class SubCategoryTwoSerializer(serializers.ModelSerializer):
-    sub_category_id = SubCategorySerializer()  # Nested serializer for SubCategory
-
+class SubCategoryTwoSerializer(serializers.ModelSerializer):    
     class Meta:
         model = MstSubCategoryTwo
-        fields = ['id', 'sub_2_category_name', 'sub_category_id']
+        fields = ['id', 'sub_2_category_name']
 
        
 class CustomSubCategorySerializer(serializers.Serializer):

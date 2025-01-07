@@ -25,6 +25,7 @@ class CustomUserManager(BaseUserManager):
         superuser_group, created = Group.objects.get_or_create(name='Admin')
         user = self.create_user(email, password, **extra_fields)
         user.groups.add(superuser_group)
+        user.is_staff = True
         user.save()
 
         return user

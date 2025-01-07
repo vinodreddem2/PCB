@@ -76,13 +76,13 @@ def get_sub_categories_two_for_subcategory_id(sub_category_id):
         raise Http404("Sub-2 Categories with the given ID does not exist.")
     
 
-def create_cad_template(data):
-    component_data = data.get('component')
+def create_cad_template(data, user):
+    component_id = data.get('component')
     component_specifications = data.get('componentSpecifications')
     design_options = data.get('designOptions')
     
     try:
-        component = MstComponent.objects.get(component_id=component_data)
+        component = MstComponent.objects.get(id=component_id)
     except MstComponent.DoesNotExist:
         return None, {"error": "Component not found."}
 
@@ -93,9 +93,11 @@ def create_cad_template(data):
         "model_name": data.get("modelName"),
         "part_number": data.get("partNumber"),
         "revision_number": data.get("revisionNumber"),
-        "component_Id": component,
+        "component_Id": component.pk,
         "pcb_specifications": component_specifications,
         "smt_design_options": design_options,
+        'created_by':user.pk,
+        'updated_by': user.pk
     }
 
     # Create and validate the serializer
