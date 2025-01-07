@@ -1,10 +1,12 @@
 from rest_framework import serializers
+from django.utils.encoding import force_str
+from django.utils.http import urlsafe_base64_decode
 
 from .models import MstComponent
 from .models import CADDesignTemplates
 from masters.models import MstSubCategory,MstCategory, MstSectionRules, MstSectionGroupings,MstSubCategoryTwo
-
-
+from authentication.models import CustomUser
+from .utils import token_generator
 class ComponentSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -108,3 +110,31 @@ class CustomComponentSerializer(serializers.Serializer):
                 for category in component.component_categories.all()
             ],
         }
+
+
+class RequestPasswordResetSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+    def validate_email(self, value):
+        try:
+            user = CustomUser.objects.get(email=value)
+            return value
+        except CustomUser.DoesNotExist:
+            raise serializers.ValidationError("User with this email does not exist.")
+
+class PasswordResetSerializer(serializers.Serializer):
+    password = serializers.CharField(write_only=True, min_length=8)
+    token = serializers.CharField()
+    uidb64 = serializers.CharField()
+
+    def validate(self, data):
+        try:
+            uid = force_str(urlsafe_base64_decode(data['uidb64']))
+            user = CustomUser.objects.get(pk=uid)
+        except (TypeError, ValueError, OverflowError, CustomUser.DoesNotExist):
+            raise serializers.ValidationError("Invalid reset link")
+
+        if not token_generator.check_token(user, data['token']):
+            raise serializers.ValidationError("Reset link has expired")
+
+        return data

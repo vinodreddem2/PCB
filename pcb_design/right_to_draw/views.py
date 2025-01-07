@@ -2,11 +2,18 @@ from django.http import Http404
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from django.utils.http import urlsafe_base64_encode,urlsafe_base64_decode
+from django.utils.encoding import force_str
+from django.core.mail import send_mail
+from django.conf import settings
+from django.utils.encoding import force_bytes
 
+from .utils import token_generator
 from authentication.custom_permissions import IsAuthorized
 from authentication.custom_authentication import CustomJWTAuthentication
-from .serializers import CADDesignTemplatesSerializer
+from .serializers import CADDesignTemplatesSerializer,RequestPasswordResetSerializer,PasswordResetSerializer
 from .models import CADDesignTemplates
+from authentication.models import CustomUser
 from .services import get_categories_for_component_id,get_section_groupings_for_subcategory_id,get_sub_categories_two_for_subcategory_id
 
 
@@ -71,4 +78,53 @@ class CADDesignTemplatesAPIView(APIView):
         if serializer.is_valid():
             template = CADDesignTemplates.objects.create(**serializer.validated_data)
             return Response(CADDesignTemplatesSerializer(template).data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+class RequestPasswordResetView(APIView):
+    def post(self, request):
+        serializer = RequestPasswordResetSerializer(data=request.data)
+        if serializer.is_valid():
+            email = serializer.validated_data['email']
+            user = CustomUser.objects.get(email=email)
+            
+            # Generate reset token
+            uidb64 = urlsafe_base64_encode(force_bytes(user.pk))
+            token = token_generator.make_token(user)
+            
+            # Create reset link
+            reset_url = f"http://127.0.0.1:8000/reset-password?token={token}&uidb64={uidb64}"
+            
+            # Send email
+            send_mail(
+                'Password Reset Request',
+                f'Click the following link to reset your password: {reset_url}',
+                'bussiness.idcard@gmail.com',
+                ['mahesh.nandavaram96@gmail.com'],
+                fail_silently=False,
+            )
+            
+            return Response({
+                "message": "Password reset email has been sent."
+            }, status=status.HTTP_200_OK)
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class PasswordResetView(APIView):
+    def post(self, request):
+        serializer = PasswordResetSerializer(data=request.data)
+        if serializer.is_valid():
+            # Get user from uidb64
+            uid = force_str(urlsafe_base64_decode(serializer.validated_data['uidb64']))
+            user = CustomUser.objects.get(pk=uid)
+            
+            # Set new password
+            user.set_password(serializer.validated_data['password'])
+            user.save()
+            
+            return Response({
+                "message": "Password has been reset successfully."
+            }, status=status.HTTP_200_OK)
+        
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
