@@ -1,4 +1,5 @@
 from django.db import models
+
 from .MstSubCategory import MstSubCategory
 from .BaseModel import BaseModel
 
@@ -10,6 +11,8 @@ class MstSubCategoryTwo(BaseModel):
 
     class Meta:
         unique_together = ('sub_2_category_name', 'sub_category_id')
+        verbose_name = 'Sub Category Two'
+        verbose_name_plural = 'Sub Category Twos'
 
     def __str__(self):
         return self.sub_2_category_name

@@ -1,5 +1,5 @@
 from django.contrib.auth.models import BaseUserManager
-from django.contrib.auth.models import User, Group
+from django.contrib.auth.models import Group
 
 
 class CustomUserManager(BaseUserManager):

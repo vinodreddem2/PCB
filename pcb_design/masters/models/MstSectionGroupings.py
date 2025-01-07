@@ -1,8 +1,8 @@
-import uuid
 from django.db import models
+
+from .BaseModel import BaseModel
 from .MstSubCategory import MstSubCategory
 from .MstSectionRules import MstSectionRules
-from .BaseModel import BaseModel
 
 
 class MstSectionGroupings(BaseModel):
@@ -12,5 +12,8 @@ class MstSectionGroupings(BaseModel):
     rules = models.ManyToManyField(MstSectionRules)
     sub_categories = models.ManyToManyField(MstSubCategory)    
 
+    class Meta:
+        verbose_name = 'Section Grouping'
+        verbose_name_plural = 'Section Groupings'
     def __str__(self):
         return f"{self.design_name}-{self.design_doc}"

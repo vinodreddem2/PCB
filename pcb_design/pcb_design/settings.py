@@ -92,7 +92,7 @@ WSGI_APPLICATION = 'pcb_design.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'mssql',
-        'NAME': os.getenv('DB_NAME', 'PCB_NEW'),
+        'NAME': os.getenv('DB_NAME', 'PCB'),
         'USER': os.getenv('DB_USER', 'admin'),
         'PASSWORD': os.getenv('DB_PASSWORD', 'Server.2'),
         'HOST': os.getenv('DB_HOST', 'localhost\SQLEXPRESS'),
