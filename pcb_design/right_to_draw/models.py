@@ -1,6 +1,6 @@
 from django.db import models
 from masters.models.MstComponet import MstComponent
-from masters.models.BaseModel import BaseModel
+# from masters.models.BaseModel import BaseModel
 
 
 class CADDesignTemplates(models.Model):

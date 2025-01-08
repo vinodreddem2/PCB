@@ -1,6 +1,6 @@
 from django.db import models
 from .MstComponet import MstComponent
-from .BaseModel import BaseModel
+# from .BaseModel import BaseModel
 
 
 class MstCategory(models.Model):
