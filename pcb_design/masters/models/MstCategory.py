@@ -1,9 +1,9 @@
 from django.db import models
 from .MstComponet import MstComponent
-# from .BaseModel import BaseModel
+from .BaseModel import BaseModel
 
 
-class MstCategory(models.Model):
+class MstCategory(BaseModel):
     id = models.AutoField(primary_key=True, editable=False, db_column='ID')
     category_name = models.CharField(max_length=255, db_column='CATEGORY_NAME')
     component_Id = models.ForeignKey(MstComponent, on_delete=models.CASCADE,

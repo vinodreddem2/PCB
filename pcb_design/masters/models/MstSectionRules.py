@@ -1,9 +1,9 @@
 from django.db import models
 
-# from .BaseModel import BaseModel
+from .BaseModel import BaseModel
 
 
-class MstSectionRules(models.Model):
+class MstSectionRules(BaseModel):
     id = models.AutoField(primary_key=True, editable=False, db_column='ID')
     design_doc = models.CharField(max_length=255, db_column='DESIGN_DOC')
     rule_number = models.CharField(max_length=50, unique=True, db_column='RULE_NUMBER')
