@@ -33,7 +33,7 @@ SECRET_KEY = 'django-insecure-jawafdzu&qb#a(n#udlvf*9_oqv$o%_=znvu9v#pp6kri=2(2o
 # SECURITY WARNING: don't run with debug turned on in production!
 
 DEBUG = True
-ALLOWED_HOSTS = ['pcb-design-7wtm.onrender.com','127.0.0.1']
+ALLOWED_HOSTS = ['pcb-design-5nqf.onrender.com','127.0.0.1']
 
 # ALLOWED_HOSTS = ["127.0.0.1","localhost"]
 # ALLOWED_HOSTS+=os.getenv("ALLOWED_HOSTS", "").split(",")
