@@ -5,5 +5,4 @@
 venv
 env
 /staticfiles
-__pycache__
-
+__pycache__ 

@@ -1,14 +1,15 @@
-from .models import MstComponent
 from rest_framework import serializers
-from masters.models import MstSubCategory,MstCategory, MstSectionRules, MstSectionGroupings
+
+from .models import MstComponent
 from .models import CADDesignTemplates
+from masters.models import MstSubCategory,MstCategory, MstSectionRules, MstSectionGroupings,MstSubCategoryTwo
 
 
 class ComponentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = MstComponent
-        fields = '__all__'
+        fields = ['id', 'component_name', 'description']
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -31,26 +32,30 @@ class SectionRulesSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = MstSectionRules
-        fields = '__all__'        
+        fields = ['id', 'design_doc', 'rule_number', 'parameter', 'min_value', 'max_value', 'nominal', 'comments']       
 
 
-class DesignOptionsSerializer(serializers.ModelSerializer):
-    Rules = SectionRulesSerializer(many=True)
-    SubCategories = SubCategorySerializer(many=True)
+class CADDesignTemplatesSerializer(serializers.ModelSerializer):       
+    class Meta:
+        model = CADDesignTemplates
+        fields = '__all__'
+
+   
+
+class SectionGroupingsSerializer(serializers.ModelSerializer):
+    rules = SectionRulesSerializer(many=True)
 
     class Meta:
         model = MstSectionGroupings
-        fields = '__all__'
+        fields = ['id', 'design_doc', 'design_name', 'rules']
+        
 
-
-class CADDesignTemplatesSerializer(serializers.ModelSerializer):
-    component_Id = ComponentSerializer()  # Nested serializer
-
+class SubCategoryTwoSerializer(serializers.ModelSerializer):    
     class Meta:
-        model = CADDesignTemplates
-        fields = '__all__'        
+        model = MstSubCategoryTwo
+        fields = ['id', 'sub_2_category_name']
 
-
+       
 class CustomSubCategorySerializer(serializers.Serializer):
     id = serializers.IntegerField(read_only=True)
     name = serializers.CharField(source="sub_category_name")

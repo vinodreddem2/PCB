@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from django.contrib.auth.models import User, Group
+from django.contrib.auth.models import Group
 
 from .models import CustomUser
 from rest_framework import serializers
@@ -8,9 +8,9 @@ from django.contrib.auth.password_validation import validate_password
 
 valid_roles = ['Admin', 'CADesigner', 'Approver', 'Verifier']
 
+
 class UserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
-
     class Meta:
         model = CustomUser
         fields = ['id','email', 'password']
