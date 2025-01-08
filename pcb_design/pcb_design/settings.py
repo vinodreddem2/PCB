@@ -14,6 +14,7 @@ from pathlib import Path
 from datetime import timedelta 
 import os 
 from dotenv import load_dotenv
+import dj_database_url
 # import dj_database_url
 # Load environment variables from .env file
 load_dotenv()
@@ -91,20 +92,7 @@ WSGI_APPLICATION = 'pcb_design.wsgi.application'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'mssql',
-        'NAME': os.getenv('DB_NAME', 'PCB_NEW3'),
-        'USER': os.getenv('DB_USER', 'admin'),
-        'PASSWORD': os.getenv('DB_PASSWORD', 'Server.2'),
-        'HOST': os.getenv('DB_HOST', 'localhost\SQLEXPRESS'),
-        'PORT': '',
-        'OPTIONS': {
-            'autocommit': True,
-            'driver': 'ODBC Driver 17 for SQL Server',
-            'extra_params': 'DataTypeCompatibility=80;MARS Connection=True;',
-            'use_legacy_date_fields': True,
-        },
-    },
+    'default':dj_database_url.parse(os.getenv('DATABASE_URL')) 
 }
 
 # DATABASE_URL = os.getenv("DATABASE_URL", "")
