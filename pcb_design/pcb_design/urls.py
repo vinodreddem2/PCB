@@ -16,7 +16,8 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path,include
-
+# staticfiles
+from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 urlpatterns = [
     # create path for authentication app
     path('auth/', include('authentication.urls')),
@@ -24,3 +25,5 @@ urlpatterns = [
     path('masters/', include('masters.urls')),
     path('admin/', admin.site.urls),
 ]
+
+urlpatterns += staticfiles_urlpatterns()
