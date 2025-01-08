@@ -3,7 +3,7 @@ from masters.models.MstComponet import MstComponent
 from masters.models.BaseModel import BaseModel
 
 
-class CADDesignTemplates(BaseModel):
+class CADDesignTemplates(models.Model):
     opp_number = models.CharField(max_length=255, unique=True, db_column='OPP_NUMBER')
     opu_number = models.CharField(max_length=255, unique=True, db_column='OPU_NUMBER')
     edu_number = models.CharField(max_length=255, unique=True, db_column='EDU_NUMBER')

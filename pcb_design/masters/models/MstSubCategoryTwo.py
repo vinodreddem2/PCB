@@ -1,10 +1,10 @@
 from django.db import models
 
 from .MstSubCategory import MstSubCategory
-from .BaseModel import BaseModel
+# from .BaseModel import BaseModel
 
 
-class MstSubCategoryTwo(BaseModel):
+class MstSubCategoryTwo(models.Model):
     id = models.AutoField(primary_key=True, editable=False, db_column='ID')
     sub_2_category_name = models.CharField(max_length=255, db_column='SUB_2_CATEGORY_NAME')
     sub_category_id = models.ForeignKey(MstSubCategory, on_delete=models.CASCADE,

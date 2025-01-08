@@ -1,11 +1,11 @@
 from django.db import models
 
-from .BaseModel import BaseModel
+# from .BaseModel import BaseModel
 from .MstSubCategory import MstSubCategory
 from .MstSectionRules import MstSectionRules
 
 
-class MstSectionGroupings(BaseModel):
+class MstSectionGroupings(models.Model):
     id = models.AutoField(primary_key=True, editable=False, db_column='ID')
     design_doc = models.CharField(max_length=255, db_column='DESIGN_DOC')
     design_name = models.CharField(max_length=255, unique=True, db_column='DESIGN_NAME')
