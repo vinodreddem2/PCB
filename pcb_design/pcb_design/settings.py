@@ -33,7 +33,7 @@ SECRET_KEY = 'django-insecure-jawafdzu&qb#a(n#udlvf*9_oqv$o%_=znvu9v#pp6kri=2(2o
 # SECURITY WARNING: don't run with debug turned on in production!
 
 DEBUG = True
-ALLOWED_HOSTS = ['pcb-design-5nqf.onrender.com','127.0.0.1']
+ALLOWED_HOSTS = ['pcb-design-5nqf.onrender.com','127.0.0.1', '*']
 
 # ALLOWED_HOSTS = ["127.0.0.1","localhost"]
 # ALLOWED_HOSTS+=os.getenv("ALLOWED_HOSTS", "").split(",")
@@ -53,18 +53,21 @@ INSTALLED_APPS = [
     'right_to_draw',
     'authentication',
     'masters',
+    "corsheaders",
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    "corsheaders.middleware.CorsMiddleware",
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
-
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOWED_ORIGIN_REGEXES = [r"^https?://localhost(:\d+)?$"]
 ROOT_URLCONF = 'pcb_design.urls'
 
 AUTH_USER_MODEL= 'authentication.CustomUser'
