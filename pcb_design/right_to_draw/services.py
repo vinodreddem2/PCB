@@ -3,10 +3,9 @@ from django.db.models import Prefetch
 from rest_framework.response import Response
 from rest_framework import status
 
-from masters.models import MstComponent
-from masters.models import MstSectionGroupings, MstSubCategoryTwo
-from masters.models import MstSectionRules
-from .serializers import SectionGroupingsSerializer,SubCategoryTwoSerializer, CADDesignTemplatesSerializer
+from masters.models import MstComponent, MstSubCategoryTwo, MstDesignOptions, MstSectionRules, MstSectionGroupings
+from .serializers import SectionGroupingsSerializer,SubCategoryTwoSerializer, CADDesignTemplatesSerializer, SectionRulesSerializer
+from django.http import Http404
 
 
 def get_categories_for_component_id(component_id):
@@ -26,7 +25,7 @@ def get_categories_for_component_id(component_id):
                 {
                     'id': subcategory.id,
                     'name': subcategory.sub_category_name,
-                    'is_section_groupings_exists': MstSectionGroupings.objects.filter(sub_categories=subcategory).exists(),
+                    'is_design_options_exists': MstDesignOptions.objects.filter(sub_category_id=subcategory).exists(),
                     'is_sub_2_categories_exists': MstSubCategoryTwo.objects.filter(sub_category_id=subcategory).exists()
                 }
                 for subcategory in subcategories
@@ -46,21 +45,6 @@ def get_categories_for_component_id(component_id):
         raise Http404("Component with the given ID does not exist.")
 
 
-def get_section_groupings_for_subcategory_id(sub_category_id):
-    try:
-        section_groupings = MstSectionGroupings.objects.filter(sub_categories__id=sub_category_id).prefetch_related(
-        Prefetch("rules", queryset=MstSectionRules.objects.all())
-    )
-        if not section_groupings:
-            return Response({"message": "No section groupings found for the given subcategory."}, status=404)
-        
-        serialized_data = SectionGroupingsSerializer(section_groupings, many=True)
-
-        return serialized_data
-    except MstSectionGroupings.DoesNotExist:
-        raise Http404("Section Groupings with the given ID does not exist.")
-
-
 def get_sub_categories_two_for_subcategory_id(sub_category_id):
     try:        
         sub_categories_two = MstSubCategoryTwo.objects.filter(sub_category_id=sub_category_id)
@@ -75,6 +59,45 @@ def get_sub_categories_two_for_subcategory_id(sub_category_id):
         
         raise Http404("Sub-2 Categories with the given ID does not exist.")
     
+
+def get_design_options_for_sub_category(sub_category_id):
+    try:
+        import pdb
+        pdb.set_trace()        
+        design_options = MstDesignOptions.objects.filter(sub_category_id=sub_category_id)
+        
+        if not design_options.exists():
+            raise Http404("No Design Options found for the given Sub Category ID.")
+        
+        result = []
+        for design_option in design_options:
+            section_groups = MstSectionGroupings.objects.filter(design_options=design_option)
+            sections_applied = []            
+            for group in section_groups:                
+                rules_data = []
+                for rule in MstSectionRules.objects.filter(id__in=group.rules.values('id')):
+                    rule_serializer = SectionRulesSerializer(rule)
+                    rules_data.append(rule_serializer.data)
+
+                sections_applied.append({
+                    'id': group.id,
+                    'design_doc':group.design_doc,
+                    'section_name':group.section_name,                    
+                    'rules': rules_data
+                })
+            
+            result.append({
+                'design_option_id': design_option.id,
+                'desing_option_name': design_option.desing_option_name,
+                'sections_applied': sections_applied
+            })
+        
+        print("vinod result is ", result)
+        return result
+
+    except Exception as e:
+        raise Http404(f"An error occurred while fetching design options: {str(e)}")
+
 
 def create_cad_template(data, user):
     component_id = data.get('component')

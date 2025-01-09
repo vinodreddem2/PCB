@@ -47,7 +47,7 @@ class SectionGroupingsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = MstSectionGroupings
-        fields = ['id', 'design_doc', 'design_name', 'rules']
+        fields = ['id', 'design_doc', 'section_name', 'rules', 'design_options']
         
 
 class SubCategoryTwoSerializer(serializers.ModelSerializer):    

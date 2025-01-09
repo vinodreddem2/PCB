@@ -9,6 +9,8 @@ class MstSubCategoryTwo(BaseModel):
     sub_2_category_name = models.CharField(max_length=255, db_column='SUB_2_CATEGORY_NAME')
     sub_category_id = models.ForeignKey(MstSubCategory, on_delete=models.CASCADE,
                                         related_name='subcategories2', db_column='SUB_CATEGORY_ID')
+    type = models.CharField(max_length=25, blank=True, null=True, db_column='TYPE')
+
 
     class Meta:
         unique_together = ('sub_2_category_name', 'sub_category_id')
@@ -17,4 +19,3 @@ class MstSubCategoryTwo(BaseModel):
 
     def __str__(self):
         return self.sub_2_category_name
-

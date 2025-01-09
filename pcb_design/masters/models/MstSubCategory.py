@@ -17,5 +17,3 @@ class MstSubCategory(BaseModel):
 
     def __str__(self):
         return f"{self.sub_category_name} ({self.category_Id.category_name})"
-
-

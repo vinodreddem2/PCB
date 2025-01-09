@@ -6,8 +6,8 @@ from drf_yasg import openapi
 from authentication.custom_permissions import IsAuthorized
 from authentication.custom_authentication import CustomJWTAuthentication
 from .models import CADDesignTemplates
-from .services import get_categories_for_component_id,get_section_groupings_for_subcategory_id, \
-    get_sub_categories_two_for_subcategory_id, create_cad_template
+from .services import get_categories_for_component_id, create_cad_template,\
+    get_sub_categories_two_for_subcategory_id,  get_design_options_for_sub_category
 from drf_yasg.utils import swagger_auto_schema
 from .serializers import CADDesignTemplatesSerializer
 
@@ -30,19 +30,6 @@ class ComponentDetailedAPIView(APIView):
             return Response({"error": f"Exception Occurred {e}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-class SectionGroupingsAPIView(APIView):
-    permission_classes = [IsAuthorized]
-    authentication_classes = [CustomJWTAuthentication]
-    def get(self, request, sub_category_id):
-        try:
-            response = get_section_groupings_for_subcategory_id(sub_category_id)
-            return Response(response.data, status=status.HTTP_200_OK)
-        except Http404 as e:            
-            return Response({"error": str(e)}, status=status.HTTP_404_NOT_FOUND)
-        except Exception as e:
-            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
 class SubCategoryTwoAPIView(APIView):
     permission_classes = [IsAuthorized]
     authentication_classes = [CustomJWTAuthentication]
@@ -50,6 +37,19 @@ class SubCategoryTwoAPIView(APIView):
         try:
             response =  get_sub_categories_two_for_subcategory_id(sub_category_id)
             return Response(response.data, status=status.HTTP_200_OK)
+        except Http404 as e:            
+            return Response({"error": str(e)}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class DesignAPIView(APIView):
+    permission_classes = [IsAuthorized]
+    authentication_classes = [CustomJWTAuthentication]
+    def get(self, request, sub_category_id):
+        try:
+            response =  get_design_options_for_sub_category(sub_category_id)
+            return Response(response, status=status.HTTP_200_OK)
         except Http404 as e:            
             return Response({"error": str(e)}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:

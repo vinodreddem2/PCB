@@ -1,5 +1,6 @@
 from django.contrib import admin
-from .models import MstComponent, MstCategory, MstSubCategory, MstSectionRules, MstSectionGroupings, MstSubCategoryTwo
+from .models import MstComponent, MstCategory, MstSubCategory, MstSectionRules, \
+    MstSectionGroupings, MstSubCategoryTwo, MstDesignOptions
 
 
 class MstComponentAdmin(admin.ModelAdmin):
@@ -27,9 +28,9 @@ class MstSectionRulesAdmin(admin.ModelAdmin):
 
 
 class MstSectionGroupingsAdmin(admin.ModelAdmin):
-    list_display = ('id', 'design_doc', 'design_name', 'created_by')  
-    search_fields = ('design_doc', 'design_name')  
-    list_filter = ('design_name', 'created_by',)   
+    list_display = ('id', 'design_doc', 'section_name', 'created_by')  
+    search_fields = ('design_doc', 'section_name')  
+    list_filter = ('section_name', 'created_by',)   
 
 
 class MstSubCategoryTwoAdmin(admin.ModelAdmin):
@@ -38,9 +39,16 @@ class MstSubCategoryTwoAdmin(admin.ModelAdmin):
     list_filter = ('sub_2_category_name', 'created_by')  
 
 
+class MstDesignOptionsAdmin(admin.ModelAdmin):
+    list_display = ('id', 'desing_option_name', 'sub_category_id', 'created_by')  
+    search_fields = ('desing_option_name', 'sub_category_id__sub_category_name')  
+    list_filter = ('desing_option_name', 'created_by')  
+
+
 admin.site.register(MstComponent, MstComponentAdmin)
 admin.site.register(MstCategory, MstCategoryAdmin)
 admin.site.register(MstSubCategory, MstSubCategoryAdmin)
 admin.site.register(MstSectionRules, MstSectionRulesAdmin)
 admin.site.register(MstSectionGroupings, MstSectionGroupingsAdmin)
 admin.site.register(MstSubCategoryTwo, MstSubCategoryTwoAdmin)
+admin.site.register(MstDesignOptions, MstDesignOptionsAdmin)

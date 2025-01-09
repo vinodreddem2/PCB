@@ -104,7 +104,22 @@ DATABASES = {
 
 # https://www.dundas.com/support/learning/documentation/installation/how-to-enable-sql-server-authentication#:~:text=In%20the%20Object%20Explorer%2C%20right,the%20server%20and%20click%20Properties.&text=On%20the%20Security%20page%20under,mode%20and%20then%20click%20OK.&text=In%20the%20Object%20Explorer%2C%20right%2Dclick%20your%20server%20and%20click,it%20must%20also%20be%20restarted.
 
-
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'mssql',
+#         'NAME': os.getenv('DB_NAME', 'PCB_NEW'),
+#         'USER': os.getenv('DB_USER', 'admin'),
+#         'PASSWORD': os.getenv('DB_PASSWORD', 'Server.2'),
+#         'HOST': os.getenv('DB_HOST', 'localhost\SQLEXPRESS'),
+#         'PORT': '',
+#         'OPTIONS': {
+#             'autocommit': True,
+#             'driver': 'ODBC Driver 17 for SQL Server',
+#             'extra_params': 'DataTypeCompatibility=80;MARS Connection=True;',
+#             'use_legacy_date_fields': True,
+#         },
+#     },
+# }
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
