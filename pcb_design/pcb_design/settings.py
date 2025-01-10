@@ -110,7 +110,7 @@ WSGI_APPLICATION = 'pcb_design.wsgi.application'
 
 # Parse the database URL from the environment variable
 DATABASES = {
-    'default': dj_database_url.parse(os.getenv('DATABASE_URL'))
+    'default': dj_database_url.parse(os.getenv('DATABASE_URL'),conn_max_age=600)
 }
 
 # Set SSL connection mode to 'require'
