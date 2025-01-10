@@ -61,9 +61,7 @@ def get_sub_categories_two_for_subcategory_id(sub_category_id):
     
 
 def get_design_options_for_sub_category(sub_category_id):
-    try:
-        import pdb
-        pdb.set_trace()        
+    try:     
         design_options = MstDesignOptions.objects.filter(sub_category_id=sub_category_id)
         
         if not design_options.exists():
