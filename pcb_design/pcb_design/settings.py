@@ -98,6 +98,11 @@ DATABASES = {
     'default':dj_database_url.parse(os.getenv('DATABASE_URL')) 
 }
 
+# Ensure SSL is enabled (no SSL root certificate required)
+DATABASES['default']['OPTIONS'] = {
+    'sslmode': 'require',  # Ensure the connection is over SSL
+}
+
 # DATABASE_URL = os.getenv("DATABASE_URL", "")
 # if DATABASE_URL:
 #     DATABASES['default'] = dj_database_url.parse(DATABASE_URL, conn_max_age=600, ssl_require=False)
