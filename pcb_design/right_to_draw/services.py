@@ -85,8 +85,7 @@ def get_design_rules_for_design_option(design_option_id):
     
     try:
         design_options = MstDesignOptions.objects.get(id=design_option_id)
-        section_groups = MstSectionGroupings.objects.filter(design_options=design_options)
-                    
+        section_groups = MstSectionGroupings.objects.filter(design_options=design_options).distinct()
         rules_data = []
         for group in section_groups:                
             for rule in MstSectionRules.objects.filter(id__in=group.rules.values('id')):

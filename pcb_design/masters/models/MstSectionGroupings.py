@@ -12,7 +12,7 @@ class MstSectionGroupings(BaseModel):
     section_name = models.CharField(max_length=255, unique=True, db_column='SECTION_NAME')
     rules = models.ManyToManyField(MstSectionRules, db_column='RULES')
     design_options = models.ManyToManyField(MstDesignOptions, db_column='DESIGN_OPTIONS')
-    name = AliasField(db_column='SECTION_NAME', blank=True, null=True)
+    name = AliasField(db_column='SECTION_NAME', blank=True, null=True,editable=False)
 
     class Meta:
         verbose_name = 'Section Group'

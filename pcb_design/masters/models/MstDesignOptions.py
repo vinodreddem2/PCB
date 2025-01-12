@@ -9,7 +9,7 @@ class MstDesignOptions(BaseModel):
     desing_option_name = models.CharField(max_length=255, db_column='DESIGN_OPTION_NAME')
     sub_category_id = models.ForeignKey(MstSubCategory, on_delete=models.CASCADE,
                                      related_name='design_categories', db_column='SUB_CATEGORY_ID')
-    name = AliasField(db_column='DESIGN_OPTION_NAME', blank=True, null=True)
+    name = AliasField(db_column='DESIGN_OPTION_NAME', blank=True, null=True,editable=False)
 
     
     class Meta:
