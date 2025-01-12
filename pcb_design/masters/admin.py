@@ -1,15 +1,20 @@
 from django.contrib import admin
 from .models import MstComponent, MstCategory, MstSubCategory, MstSectionRules, \
     MstSectionGroupings, MstSubCategoryTwo, MstDesignOptions
+from .resources import MstCategoryResource, MstComponentResource
+from import_export.admin import ImportExportModelAdmin, ExportActionModelAdmin
 
 
-class MstComponentAdmin(admin.ModelAdmin):
+
+class MstComponentAdmin(ImportExportModelAdmin, admin.ModelAdmin):
+    resource_classes = [MstComponentResource]
     list_display = ('id', 'component_name', 'description', 'created_by')  
     search_fields = ('component_name', 'description')  
     list_filter = ('component_name',)  
 
 
-class MstCategoryAdmin(admin.ModelAdmin):
+class MstCategoryAdmin(ImportExportModelAdmin, admin.ModelAdmin):
+    resource_classes = [MstCategoryResource]
     list_display = ('id', 'category_name', 'component_Id', 'created_by')  
     search_fields = ('category_name', 'component_Id__component_name')  
     list_filter = ('category_name', 'component_Id', 'created_by')  

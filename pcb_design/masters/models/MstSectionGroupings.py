@@ -3,6 +3,7 @@ from django.db import models
 from .BaseModel import BaseModel
 from .MstDesignOptions import MstDesignOptions
 from .MstSectionRules import MstSectionRules
+from authentication.alias import AliasField
 
 
 class MstSectionGroupings(BaseModel):
@@ -11,6 +12,7 @@ class MstSectionGroupings(BaseModel):
     section_name = models.CharField(max_length=255, unique=True, db_column='SECTION_NAME')
     rules = models.ManyToManyField(MstSectionRules, db_column='RULES')
     design_options = models.ManyToManyField(MstDesignOptions, db_column='DESIGN_OPTIONS')
+    name = AliasField(db_column='SECTION_NAME', blank=True, null=True)
 
     class Meta:
         verbose_name = 'Section Group'

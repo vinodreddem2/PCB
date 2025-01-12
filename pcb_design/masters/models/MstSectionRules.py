@@ -1,6 +1,7 @@
 from django.db import models
 
 from .BaseModel import BaseModel
+from authentication.alias import AliasField
 
 
 class MstSectionRules(BaseModel):
@@ -12,6 +13,7 @@ class MstSectionRules(BaseModel):
     max_value = models.CharField(max_length=10, blank=True, null=True, db_column='MAX_VALUE')
     nominal = models.CharField(max_length=10, blank=True, null=True, db_column='NOMINAL')
     comments = models.TextField(blank=True, null=True, db_column='COMMENTS')
+    name = AliasField(db_column='SECTION_NAME', blank=True, null=True)
 
     class Meta:
         verbose_name = 'Section Rule'

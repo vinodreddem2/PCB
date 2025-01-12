@@ -2,6 +2,7 @@ from django.db import models
 
 from .MstCategory import MstCategory
 from .BaseModel import BaseModel
+from authentication.alias import AliasField
 
 
 class MstSubCategory(BaseModel):
@@ -9,6 +10,7 @@ class MstSubCategory(BaseModel):
     sub_category_name = models.CharField(max_length=255, db_column='SUB_CATEGORY_NAME')
     category_Id = models.ForeignKey(MstCategory, on_delete=models.CASCADE, related_name='subcategories',
                                     db_column='CATEGORY_ID')
+    name = AliasField(db_column='SUB_CATEGORY_NAME', blank=True, null=True)
 
     class Meta:
         unique_together = ('sub_category_name', 'category_Id') 
