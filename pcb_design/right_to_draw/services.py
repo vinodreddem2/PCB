@@ -69,25 +69,9 @@ def get_design_options_for_sub_category(sub_category_id):
         
         result = []
         for design_option in design_options:
-            section_groups = MstSectionGroupings.objects.filter(design_options=design_option)
-            sections_applied = []            
-            for group in section_groups:                
-                rules_data = []
-                for rule in MstSectionRules.objects.filter(id__in=group.rules.values('id')):
-                    rule_serializer = SectionRulesSerializer(rule)
-                    rules_data.append(rule_serializer.data)
-
-                sections_applied.append({
-                    'id': group.id,
-                    'design_doc':group.design_doc,
-                    'section_name':group.section_name,                    
-                    'rules': rules_data
-                })
-            
             result.append({
                 'design_option_id': design_option.id,
-                'desing_option_name': design_option.desing_option_name,
-                'sections_applied': sections_applied
+                'desing_option_name': design_option.desing_option_name
             })
         
         print("vinod result is ", result)
@@ -96,6 +80,24 @@ def get_design_options_for_sub_category(sub_category_id):
     except Exception as e:
         raise Http404(f"An error occurred while fetching design options: {str(e)}")
 
+
+def get_design_rules_for_design_option(design_option_id):
+    
+    try:
+        design_options = MstDesignOptions.objects.get(id=design_option_id)
+        section_groups = MstSectionGroupings.objects.filter(design_options=design_options)
+                    
+        rules_data = []
+        for group in section_groups:                
+            for rule in MstSectionRules.objects.filter(id__in=group.rules.values('id')):
+                rule_serializer = SectionRulesSerializer(rule)
+                rules_data.append(rule_serializer.data)
+
+        return rules_data
+
+    except Exception as e:
+        raise Http404(f"An error occurred while fetching design rules: {str(e)}")
+    
 
 def create_cad_template(data, user):
     component_id = data.get('component')
