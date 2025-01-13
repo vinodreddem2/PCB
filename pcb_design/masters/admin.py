@@ -1,7 +1,8 @@
 from django.contrib import admin
 from .models import MstComponent, MstCategory, MstSubCategory, MstSectionRules, \
     MstSectionGroupings, MstSubCategoryTwo, MstDesignOptions
-from .resources import MstCategoryResource, MstComponentResource
+from .resources import MstCategoryResource, MstComponentResource, MstSubCategoryResource,\
+    MstSubCategoryTwoResource, MstDesignOptionsResource, MstSectionRulesResource, MstSectionGroupingsResource
 from import_export.admin import ImportExportModelAdmin, ExportActionModelAdmin
 
 
@@ -20,31 +21,36 @@ class MstCategoryAdmin(ImportExportModelAdmin, admin.ModelAdmin):
     list_filter = ('category_name', 'component_Id', 'created_by')  
 
 
-class MstSubCategoryAdmin(admin.ModelAdmin):
+class MstSubCategoryAdmin(ImportExportModelAdmin, admin.ModelAdmin):
+    resource_classes = [MstSubCategoryResource]
     list_display = ('id', 'sub_category_name', 'category_Id', 'created_by')  
     search_fields = ('sub_category_name', 'category_Id__category_name')  
     list_filter = ('sub_category_name', 'created_by')  
 
 
-class MstSectionRulesAdmin(admin.ModelAdmin):
+class MstSectionRulesAdmin(ImportExportModelAdmin, admin.ModelAdmin):
+    resource_classes = [MstSectionRulesResource]
     list_display = ('id', 'rule_number', 'parameter', 'min_value', 'max_value', 'nominal', 'created_by')  
     search_fields = ('rule_number', 'parameter')  
     list_filter = ('rule_number', 'created_by',)  
 
 
-class MstSectionGroupingsAdmin(admin.ModelAdmin):
+class MstSectionGroupingsAdmin(ImportExportModelAdmin, admin.ModelAdmin):
+    resource_classes = [MstSectionGroupingsResource]
     list_display = ('id', 'design_doc', 'section_name', 'created_by')  
     search_fields = ('design_doc', 'section_name')  
     list_filter = ('section_name', 'created_by',)   
 
 
-class MstSubCategoryTwoAdmin(admin.ModelAdmin):
+class MstSubCategoryTwoAdmin(ImportExportModelAdmin, admin.ModelAdmin):
+    resource_classes = [MstSubCategoryTwoResource]
     list_display = ('id', 'sub_2_category_name', 'sub_category_id', 'created_by')  
     search_fields = ('sub_2_category_name', 'sub_category_id__sub_category_name')  
     list_filter = ('sub_2_category_name', 'created_by')  
 
 
-class MstDesignOptionsAdmin(admin.ModelAdmin):
+class MstDesignOptionsAdmin(ImportExportModelAdmin, admin.ModelAdmin):
+    resource_classes = [MstDesignOptionsResource]
     list_display = ('id', 'desing_option_name', 'sub_category_id', 'created_by')  
     search_fields = ('desing_option_name', 'sub_category_id__sub_category_name')  
     list_filter = ('desing_option_name', 'created_by')  

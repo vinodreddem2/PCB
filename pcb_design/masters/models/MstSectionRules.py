@@ -13,9 +13,10 @@ class MstSectionRules(BaseModel):
     max_value = models.CharField(max_length=10, blank=True, null=True, db_column='MAX_VALUE')
     nominal = models.CharField(max_length=10, blank=True, null=True, db_column='NOMINAL')
     comments = models.TextField(blank=True, null=True, db_column='COMMENTS')
-    name = AliasField(db_column='SECTION_NAME', blank=True, null=True)
+    name = AliasField(db_column='RULE_NUMBER', blank=True, null=True, editable=False)
 
     class Meta:
+        unique_together = ('design_doc', 'rule_number')
         verbose_name = 'Section Rule'
         verbose_name_plural = 'Section Rules'
 

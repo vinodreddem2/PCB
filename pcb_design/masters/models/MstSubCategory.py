@@ -10,7 +10,7 @@ class MstSubCategory(BaseModel):
     sub_category_name = models.CharField(max_length=255, db_column='SUB_CATEGORY_NAME')
     category_Id = models.ForeignKey(MstCategory, on_delete=models.CASCADE, related_name='subcategories',
                                     db_column='CATEGORY_ID')
-    name = AliasField(db_column='SUB_CATEGORY_NAME', blank=True, null=True)
+    name = AliasField(db_column='SUB_CATEGORY_NAME', blank=True, null=True, editable=False)
 
     class Meta:
         unique_together = ('sub_category_name', 'category_Id') 
@@ -18,4 +18,4 @@ class MstSubCategory(BaseModel):
         verbose_name_plural = 'Sub Categories' 
 
     def __str__(self):
-        return f"{self.sub_category_name} ({self.category_Id.category_name})"
+        return f"{self.sub_category_name}"
