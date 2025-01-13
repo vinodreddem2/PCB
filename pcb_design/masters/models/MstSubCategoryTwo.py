@@ -11,7 +11,7 @@ class MstSubCategoryTwo(BaseModel):
     sub_category_id = models.ForeignKey(MstSubCategory, on_delete=models.CASCADE,
                                         related_name='subcategories2', db_column='SUB_CATEGORY_ID')
     type = models.CharField(max_length=25, blank=True, null=True, db_column='TYPE')
-    name = AliasField(db_column='SUB_2_CATEGORY_NAME', blank=True, null=True, editable=False)
+    name = AliasField(db_column='SUB_2_CATEGORY_NAME', blank=True, null=True,editable=False)
 
     class Meta:
         unique_together = ('sub_2_category_name', 'sub_category_id')

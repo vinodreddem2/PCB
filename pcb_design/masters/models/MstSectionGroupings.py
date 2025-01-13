@@ -11,7 +11,8 @@ class MstSectionGroupings(BaseModel):
     design_doc = models.CharField(max_length=255, db_column='DESIGN_DOC')
     section_name = models.CharField(max_length=255, unique=True, db_column='SECTION_NAME')
     rules = models.ManyToManyField(MstSectionRules, db_column='RULES', blank=True, null=True)
-    design_options = models.ManyToManyField(MstDesignOptions, db_column='DESIGN_OPTIONS', blank=True, null=True)
+    design_options = models.ManyToManyField(MstDesignOptions, db_column='DESIGN_OPTIONS', related_name='section_groups', 
+                                            blank=True, null=True)
     name = AliasField(db_column='SECTION_NAME', blank=True, null=True, editable=False)
 
     class Meta:

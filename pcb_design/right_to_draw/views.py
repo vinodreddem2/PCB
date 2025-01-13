@@ -7,7 +7,7 @@ from authentication.custom_permissions import IsAuthorized
 from authentication.custom_authentication import CustomJWTAuthentication
 from .models import CADDesignTemplates
 from .services import get_categories_for_component_id, create_cad_template,\
-    get_sub_categories_two_for_subcategory_id,  get_design_options_for_sub_category
+    get_sub_categories_two_for_subcategory_id,  get_design_options_for_sub_category,get_design_rules_for_design_option
 from drf_yasg.utils import swagger_auto_schema
 from .serializers import CADDesignTemplatesSerializer
 
@@ -43,13 +43,32 @@ class SubCategoryTwoAPIView(APIView):
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-class DesignAPIView(APIView):
+class DesignOptionAPIView(APIView):
     permission_classes = [IsAuthorized]
     authentication_classes = [CustomJWTAuthentication]
     def get(self, request, sub_category_id):
         try:
             response =  get_design_options_for_sub_category(sub_category_id)
             return Response(response, status=status.HTTP_200_OK)
+        except Http404 as e:            
+            return Response({"error": str(e)}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class DesignRuleAPIView(APIView):
+    permission_classes = [IsAuthorized]
+    authentication_classes = [CustomJWTAuthentication]
+    def get(self, request):        
+        try:
+            design_option_ids = request.query_params.get('design_option_ids', None)            
+            if design_option_ids:
+                design_option_ids = design_option_ids.split(',')                
+                design_option_ids = [int(id.strip()) for id in design_option_ids]
+                response =  get_design_rules_for_design_option(design_option_ids)
+                return Response(response, status=status.HTTP_200_OK)
+            else:
+                raise Http404("No design_option_ids provided")
         except Http404 as e:            
             return Response({"error": str(e)}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
@@ -109,3 +128,9 @@ class CADDesignTemplatesAPIView(APIView):
             return Response(error, status=status.HTTP_400_BAD_REQUEST)
                 
         return Response(template.id, status=status.HTTP_201_CREATED)
+
+
+
+
+
+
