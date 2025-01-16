@@ -2,10 +2,14 @@ from django.http import Http404
 from django.db.models import Prefetch
 from rest_framework.response import Response
 from rest_framework import status
-
-from masters.models import MstComponent, MstSubCategoryTwo, MstDesignOptions, MstSectionRules, MstSectionGroupings
-from .serializers import SectionGroupingsSerializer,SubCategoryTwoSerializer, CADDesignTemplatesSerializer, SectionRulesSerializer
+from django.db.models import Q
+from .models import CADVerifierTemplates
+from masters.models import MstComponent, MstSubCategoryTwo, MstDesignOptions, MstSectionRules, \
+    MstSectionGroupings, MstVerifierField, MstVerifierField, MstVerifierRules
+from .serializers import SectionGroupingsSerializer,SubCategoryTwoSerializer, CADDesignTemplatesSerializer, \
+    SectionRulesSerializer, MstVerifierFieldSerializer, CADVerifierTemplateSerializer
 from django.http import Http404
+from django.core.exceptions import ObjectDoesNotExist
 
 
 def get_categories_for_component_id(component_id):
@@ -26,7 +30,8 @@ def get_categories_for_component_id(component_id):
                     'id': subcategory.id,
                     'name': subcategory.sub_category_name,
                     'is_design_options_exists': MstDesignOptions.objects.filter(sub_category_id=subcategory).exists(),
-                    'is_sub_2_categories_exists': MstSubCategoryTwo.objects.filter(sub_category_id=subcategory).exists()
+                    'is_sub_2_categories_exists': MstSubCategoryTwo.objects.filter(sub_category_id=subcategory).exists(),
+                    'has_verifier_fields': MstVerifierField.objects.filter(sub_category=subcategory).exists()
                 }
                 for subcategory in subcategories
             ]
@@ -134,3 +139,102 @@ def create_cad_template(data, user):
         return cad_template, None
     else:        
         return None, serializer.errors
+
+
+def get_verifier_fields_by_params(component_id=None, category_id=None, sub_category_id=None):    
+    filter_criteria = Q()
+    if component_id:
+        filter_criteria &= Q(component_id=component_id)
+    if category_id:
+        filter_criteria &= Q(category_id=category_id)
+    if sub_category_id:
+        filter_criteria &= Q(sub_category__id=sub_category_id)
+    verifier_fields = MstVerifierField.objects.filter(filter_criteria).distinct()
+
+    serializer = MstVerifierFieldSerializer(verifier_fields, many=True)
+
+    return serializer.data
+
+
+def create_cad_verifier_template(data, user):
+    component_id = data.get('component')
+    design_compare_data = data.get('design_compare_data', [])
+    verify_compare_data = data.get('verify_compare_data', [])    
+    try:
+        component = MstComponent.objects.get(id=component_id)
+    except MstComponent.DoesNotExist:
+        return None, {"error": "Component not found."}
+    
+    template_data = {
+        "opp_number": data.get("oppNumber"),
+        "opu_number": data.get("opuNumber"),
+        "edu_number": data.get("eduNumber"),
+        "model_name": data.get("modelName"),
+        "part_number": data.get("partNumber"),
+        "revision_number": data.get("revisionNumber"),
+        "component_Id": component.pk,
+        "pcb_specifications": data.get("componentSpecifications", {}),
+        "verifier_query_data": data.get("verifierQueryData", {}),
+        'created_by':user.pk,
+        'updated_by': user.pk
+    }
+
+    # Create and validate the serializer
+    serializer = CADVerifierTemplateSerializer(data=template_data)
+    if serializer.is_valid():
+        cad_verifier_template = serializer.save()            
+        return cad_verifier_template, None
+    else:
+        return None, serializer.errors
+
+
+def compare_verifier_data_with_design_data(data):
+    pass
+
+
+def comapre_verfier_data_with_rules(verifier_id, field_value):    
+    try:        
+        verifier_field = MstVerifierField.objects.get(id=verifier_id)        
+        verifier_rule = MstVerifierRules.objects.get(verifier_field=verifier_field)        
+        rule_number = verifier_rule.rule_number
+        design_doc = verifier_rule.design_doc                
+        section_rule = MstSectionRules.objects.get(rule_number=rule_number, design_doc=design_doc)
+        try:        
+            min_value = float(section_rule.min_value) if section_rule.min_value else None                   
+        except Exception as e:
+            min_value = None
+
+        try:                    
+            max_value = float(section_rule.max_value) if section_rule.max_value else None        
+        except Exception as e:
+            max_value = None
+
+
+        is_deviation = False
+        if (min_value is not None and field_value < min_value) or (max_value is not None and field_value > max_value):
+            is_deviation = True
+        
+        return is_deviation
+
+    except ObjectDoesNotExist:
+        return False
+
+def comapre_verfier_data(verified_data):
+    verifier_res = []
+    for id, val in verified_data.items():
+        is_deviated = comapre_verfier_data_with_rules(id, val)
+        data = {'id' :id, 'name':'o', 'value':val, 'is_deviated':is_deviated}
+        verifier_res.append(data)
+    return verifier_res
+
+def compare_verifier_data_with_rules_and_designs(data):    
+    res = {
+        "opp_number": data.get("oppNumber"),
+        "opu_number": data.get("opuNumber"),
+        "edu_number": data.get("eduNumber"),
+        "model_name": data.get("modelName"),
+        "part_number": data.get("partNumber"),
+        "revision_number": data.get("revisionNumber"),        
+    }
+
+    verified_rule_data = comapre_verfier_data(data.get("verifierQueryData"))

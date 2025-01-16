@@ -7,7 +7,8 @@ from authentication.custom_permissions import IsAuthorized
 from authentication.custom_authentication import CustomJWTAuthentication
 from .models import CADDesignTemplates
 from .services import get_categories_for_component_id, create_cad_template,\
-    get_sub_categories_two_for_subcategory_id,  get_design_options_for_sub_category,get_design_rules_for_design_option
+    get_sub_categories_two_for_subcategory_id,  get_design_options_for_sub_category,get_design_rules_for_design_option,\
+    get_verifier_fields_by_params, create_cad_verifier_template
 from drf_yasg.utils import swagger_auto_schema
 from .serializers import CADDesignTemplatesSerializer
 
@@ -130,7 +131,72 @@ class CADDesignTemplatesAPIView(APIView):
         return Response(template.id, status=status.HTTP_201_CREATED)
 
 
+class MstVerifierFieldFilterAPIView(APIView):
+    permission_classes = [IsAuthorized]
+    authentication_classes = [CustomJWTAuthentication]
+
+    def get(self, request):        
+        component_id = request.query_params.get('component_id', None)
+        category_id = request.query_params.get('category_id', None)
+        sub_category_id = request.query_params.get('sub_category_id', None)
+
+        try:            
+            serialized_data = get_verifier_fields_by_params(
+                component_id=component_id,
+                category_id=category_id,
+                sub_category_id=sub_category_id
+            )                        
+
+            return Response(serialized_data, status=status.HTTP_200_OK)
+
+        except Exception as e:            
+            return Response({"error": f"Exception occurred: {e}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
+class CADVerifierTemplateCreateAPIView(APIView):
+    permission_classes = [IsAuthorized]
+    authentication_classes = [CustomJWTAuthentication]
 
-
+    @swagger_auto_schema(
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={
+                'oppNumber': openapi.Schema(type=openapi.TYPE_STRING, description='Opp Number'),
+                'opuNumber': openapi.Schema(type=openapi.TYPE_STRING, description='Opu Number'),
+                'eduNumber': openapi.Schema(type=openapi.TYPE_STRING, description='Edu Number'),
+                'modelName': openapi.Schema(type=openapi.TYPE_STRING, description='Model Name'),
+                'partNumber': openapi.Schema(type=openapi.TYPE_STRING, description='Part Number'),
+                'revisionNumber': openapi.Schema(type=openapi.TYPE_STRING, description='Revision Number'),
+                'component': openapi.Schema(type=openapi.TYPE_INTEGER, description='Component ID (e.g., b14)'),
+                'componentSpecifications': openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    additional_properties=openapi.Schema(type=openapi.TYPE_STRING, description="Dynamic specification fields")
+                ),
+                'verifierQueryData': openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    additional_properties=openapi.Schema(type=openapi.TYPE_STRING, description="Verifier query fields")
+                )
+            },
+            required=['oppNumber', 'opuNumber', 'modelName', 'partNumber', 'component'],
+        ),
+        responses={201: 'Template Created', 400: 'Bad Request'}
+    )
+    def post(self, request):
+        user = request.user
+        template, error = create_cad_verifier_template(request.data, user)
+        # Here we will write a new response like below
+        # {
+            # oppNumber, opuNumber ....
+            # componentSpecifications:[
+                # category_id: {name, value_selected:{sub_category_id, name}, is_devated:True or False}
+                
+            # ]
+            # verifierQueryData:[
+            #   id_verifier_field:{name, is_devaiated}
+            # ]        
+        # }
+        
+        if error:
+            return Response(error, status=status.HTTP_400_BAD_REQUEST)
+                
+        return Response({"id": template.id}, status=status.HTTP_201_CREATED)
