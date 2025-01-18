@@ -1,6 +1,6 @@
 from import_export import resources, fields
 from import_export.widgets import ForeignKeyWidget
-from models import MstSubCategoryTwo, MstSubCategory
+from masters.models import MstSubCategoryTwo, MstSubCategory
 from .utility import before_save_instance_update_create_date, CustomForeignKeyWidget
 
 

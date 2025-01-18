@@ -18,16 +18,16 @@ class MstComponentAdmin(ImportExportModelAdmin, admin.ModelAdmin):
 
 class MstCategoryAdmin(ImportExportModelAdmin, admin.ModelAdmin):
     resource_classes = [MstCategoryResource]
-    list_display = ('id', 'category_name', 'component_Id', 'created_by')  
+    list_display = ('id', 'category_name', 'component_Id', 'created_by', 'is_verifier')  
     search_fields = ('category_name', 'component_Id__component_name')  
-    list_filter = ('category_name', 'component_Id', 'created_by')  
+    list_filter = ('category_name', 'component_Id', 'created_by', 'is_verifier')  
 
 
 class MstSubCategoryAdmin(ImportExportModelAdmin, admin.ModelAdmin):
     resource_classes = [MstSubCategoryResource]
-    list_display = ('id', 'sub_category_name', 'category_Id', 'created_by')  
+    list_display = ('id', 'sub_category_name', 'category_Id', 'created_by', 'is_verifier')  
     search_fields = ('sub_category_name', 'category_Id__category_name')  
-    list_filter = ('sub_category_name', 'created_by')  
+    list_filter = ('sub_category_name', 'created_by', 'is_verifier')  
 
 
 class MstSectionRulesAdmin(ImportExportModelAdmin, admin.ModelAdmin):
@@ -90,9 +90,10 @@ class MstVerifierFieldAdmin(ImportExportModelAdmin, admin.ModelAdmin):
 
 class MstVerifierRulesAdmin(ImportExportModelAdmin, admin.ModelAdmin):
     resource_classes = [MstVerifierRulesResource]
-    list_display = ('id', 'verifier_field', 'design_doc', 'rule_number', 'name')
-    search_fields = ('verifier_field__field_name', 'design_doc', 'rule_number')
+    list_display = ('id', 'verifier_field', 'design_doc', 'rule_number')
+    search_fields = ('design_doc', 'rule_number')
     list_filter = ('design_doc', 'rule_number')
+
 
 
 admin.site.register(MstComponent, MstComponentAdmin)

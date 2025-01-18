@@ -1,5 +1,5 @@
 from import_export import resources
-from models import MstSectionRules
+from masters.models import MstSectionRules
 from .utility import before_save_instance_update_create_date
 
 

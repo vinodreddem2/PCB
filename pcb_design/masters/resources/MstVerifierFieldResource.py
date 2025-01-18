@@ -1,5 +1,5 @@
 from import_export import resources, fields
-from models import MstVerifierField, MstComponent, MstCategory, MstSubCategory
+from masters.models import MstVerifierField, MstComponent, MstCategory, MstSubCategory
 from .utility import before_save_instance_update_create_date, CustomForeignKeyWidget, CustomManyToManyWidget
 
 
@@ -11,7 +11,7 @@ class MstVerifierFieldResource(resources.ModelResource):
                             widget=CustomForeignKeyWidget(MstCategory, field='category_name'))
         
     sub_category = fields.Field(column_name='sub_category', attribute='sub_category', 
-                                widget=CustomManyToManyWidget(MstSubCategory, separator=',', field='sub_category_name'))
+                                widget=CustomManyToManyWidget(MstSubCategory, separator=',', field='id'))
     
 
     class Meta:

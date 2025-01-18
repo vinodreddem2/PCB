@@ -15,5 +15,10 @@ class MstVerifierField(BaseModel):
     field_name = models.CharField(max_length=255, db_column='FIELD_NAME')
     name = AliasField(db_column='FIELD_NAME', blank=True, null=True, editable=False)
     
+    class Meta:        
+        verbose_name = 'Verifier Field'
+        verbose_name_plural = 'Verifier Fields'
+
+
     def __str__(self):
         return self.field_name

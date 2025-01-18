@@ -7,3 +7,4 @@ from .MstSectionRulesResource import MstSectionRulesResource
 from .MstSectionGroupingsResource import MstSectionGroupingsResource
 from .MstConditionsResource import MstConditionsResource
 from .MstVerifierFieldResource import MstVerifierFieldResource
+from .MstVerifierRulesResource import MstVerifierRulesResource

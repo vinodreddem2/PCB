@@ -1,5 +1,5 @@
 from import_export import resources, fields
-from models import MstConditions, MstSubCategory
+from masters.models import MstConditions, MstSubCategory
 from .utility import before_save_instance_update_create_date, CustomForeignKeyWidget
 
 

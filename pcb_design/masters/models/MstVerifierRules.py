@@ -12,5 +12,9 @@ class MstVerifierRules(BaseModel):
     rule_number = models.CharField(max_length=50, db_column='RULE_NUMBER')
     name = AliasField(db_column='RULE_NUMBER', blank=True, null=True, editable=False)
 
+    class Meta:        
+        verbose_name = 'Verifier Rule'
+        verbose_name_plural = 'Verifier Rules'
+
     def __str__(self):
         return f"Rule {self.rule_number} for {self.verifier_field.field_name}"

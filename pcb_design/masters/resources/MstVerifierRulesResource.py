@@ -1,15 +1,16 @@
 from import_export import resources, fields
-from models import MstVerifierRules, MstVerifierField
+from masters.models import MstVerifierRules, MstVerifierField
 from .utility import before_save_instance_update_create_date, CustomForeignKeyWidget
+from import_export.widgets import ForeignKeyWidget
 
 
 class MstVerifierRulesResource(resources.ModelResource):    
     verifier_field = fields.Field( column_name='verifier_field', attribute='verifier_field',
-                                  widget=CustomForeignKeyWidget(MstVerifierField, field='id'))
-    
+                             widget=ForeignKeyWidget(MstVerifierField, field='id'))
+
     class Meta:
         model = MstVerifierRules
-        fields = ('id', 'verifier_field', 'design_doc', 'rule_number', 'name')
+        fields = ('id', 'verifier_field', 'design_doc', 'rule_number')
         import_id_fields = ('id',)
         primary_key = 'id'
         skip_unchanged = True

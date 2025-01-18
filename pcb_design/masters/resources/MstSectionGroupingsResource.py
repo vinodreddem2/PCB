@@ -1,5 +1,5 @@
 from import_export import resources, fields
-from models import MstSectionRules, MstDesignOptions, MstSectionGroupings
+from masters.models import MstSectionRules, MstDesignOptions, MstSectionGroupings
 from .utility import before_save_instance_update_create_date, CustomManyToManyWidget
 
 

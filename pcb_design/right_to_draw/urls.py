@@ -1,7 +1,9 @@
 from django.urls import path
 
 from .views import ComponentDetailedAPIView, SubCategoryTwoAPIView,\
-    CADDesignTemplatesAPIView, DesignOptionAPIView,DesignRuleAPIView
+    CADDesignTemplatesAPIView, DesignOptionAPIView,DesignRuleAPIView, \
+        CADVerifierTemplateCreateAPIView, MstVerifierFieldFilterAPIView, CADVerifierTemplateCreateAPIView,\
+        MstVerifierFieldResultAPIView
 
 urlpatterns = [
     # Pull ALl the categories and Sub Categories for the Given Component
@@ -16,5 +18,9 @@ urlpatterns = [
     # Get Design Rules for specified designs , Pass design option Ids in Query Param
     path('design-rules/', DesignRuleAPIView.as_view(), name='design-rules'),
     # Get All the Verifier field records for given filter params    
-    path('verifier-fields/<int:sub_category_id>/', )    
+    path('verifier-fields/', MstVerifierFieldFilterAPIView.as_view(), name='verifier-fields'),
+    # Save the Verifier Templates
+    path('verifier-templates/', CADVerifierTemplateCreateAPIView.as_view(), name='verifier-templates'),
+    # Verify result screen 
+    path('verify-results/', MstVerifierFieldResultAPIView.as_view(), name='verify-results')
 ]

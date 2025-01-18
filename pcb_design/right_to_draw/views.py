@@ -8,7 +8,7 @@ from authentication.custom_authentication import CustomJWTAuthentication
 from .models import CADDesignTemplates
 from .services import get_categories_for_component_id, create_cad_template,\
     get_sub_categories_two_for_subcategory_id,  get_design_options_for_sub_category,get_design_rules_for_design_option,\
-    get_verifier_fields_by_params, create_cad_verifier_template
+    get_verifier_fields_by_params, create_cad_verifier_template, compare_verifier_data_with_rules_and_designs, get_verifier_record
 from drf_yasg.utils import swagger_auto_schema
 from .serializers import CADDesignTemplatesSerializer
 
@@ -17,11 +17,10 @@ class ComponentDetailedAPIView(APIView):
     permission_classes = [IsAuthorized]
     authentication_classes = [CustomJWTAuthentication]
     
-    def get(self, request, component_id):
-        print(component_id)
-        
+    def get(self, request, component_id):        
         try:            
-            response = get_categories_for_component_id(component_id)            
+            is_verifier = int(request.GET.get('is_verifier', 0))
+            response = get_categories_for_component_id(component_id, is_verifier)            
             return Response(response, status=status.HTTP_200_OK) 
         
         except Http404 as e:            
@@ -182,21 +181,47 @@ class CADVerifierTemplateCreateAPIView(APIView):
         responses={201: 'Template Created', 400: 'Bad Request'}
     )
     def post(self, request):
-        user = request.user
-        template, error = create_cad_verifier_template(request.data, user)
-        # Here we will write a new response like below
-        # {
-            # oppNumber, opuNumber ....
-            # componentSpecifications:[
-                # category_id: {name, value_selected:{sub_category_id, name}, is_devated:True or False}
-                
-            # ]
-            # verifierQueryData:[
-            #   id_verifier_field:{name, is_devaiated}
-            # ]        
-        # }
-        
-        if error:
-            return Response(error, status=status.HTTP_400_BAD_REQUEST)
-                
-        return Response({"id": template.id}, status=status.HTTP_201_CREATED)
+        try:
+            user = request.user
+            try:
+                template, error = create_cad_verifier_template(request.data, user)
+            except Exception as e:
+                print("Excetion Occuring on storing the record")
+            res = compare_verifier_data_with_rules_and_designs(request.data)
+            if error:
+                return Response(error, status=status.HTTP_400_BAD_REQUEST)
+                    
+            return Response({"template_id":template.id, "res":res}, status=status.HTTP_201_CREATED)
+        except Exception as e:            
+            return Response({"error": f"Exception occurred: {e}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+
+class MstVerifierFieldResultAPIView(APIView):
+    permission_classes = [IsAuthorized]
+    authentication_classes = [CustomJWTAuthentication]
+    @swagger_auto_schema(
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={
+                'oppNumber': openapi.Schema(type=openapi.TYPE_STRING, description='Opp Number'),
+                'opuNumber': openapi.Schema(type=openapi.TYPE_STRING, description='Opu Number'),
+                'eduNumber': openapi.Schema(type=openapi.TYPE_STRING, description='Edu Number'),
+                'modelName': openapi.Schema(type=openapi.TYPE_STRING, description='Model Name'),
+                'partNumber': openapi.Schema(type=openapi.TYPE_STRING, description='Part Number'),
+                'revisionNumber': openapi.Schema(type=openapi.TYPE_STRING, description='Revision Number'),
+                'component': openapi.Schema(type=openapi.TYPE_INTEGER, description='Component ID (e.g., b14)')                
+            },
+            required=['oppNumber', 'opuNumber', 'modelName', 'partNumber', 'component'],
+        ),
+        responses={201: 'Results Created', 400: 'Bad Request'}
+    )
+    def post(self, request):
+        try:            
+
+            verifier_record_data = get_verifier_record(request.data)     
+            res = compare_verifier_data_with_rules_and_designs(verifier_record_data)
+            return Response({"res":res}, status=200)
+
+        except Exception as e:            
+            return Response({"error": f"Exception occurred: {e}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

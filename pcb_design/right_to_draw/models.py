@@ -26,7 +26,7 @@ class CADVerifierTemplates(BaseModel):
     model_name = models.CharField(max_length=255, unique=True, db_column='MODEL_NAME')
     part_number = models.CharField(max_length=255, unique=True, db_column='PART_NUMBER')
     revision_number = models.CharField(max_length=255, unique=True, db_column='REVISION_NUMBER')
-    component_Id = models.ForeignKey(MstComponent, on_delete=models.CASCADE, related_name='design_templates',
+    component_Id = models.ForeignKey(MstComponent, on_delete=models.CASCADE, related_name='verifier_templates',
                                      db_column='COMPONENT_ID')
     pcb_specifications = models.JSONField(db_column='PCB_SPECIFICATIONS')
     verifier_query_data = models.JSONField(db_column='VERIFIER_QUERY_DATA')

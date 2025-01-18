@@ -1,5 +1,5 @@
 from import_export import resources
-from models import MstComponent
+from masters.models import MstComponent
 from .utility import before_save_instance_update_create_date
 
 

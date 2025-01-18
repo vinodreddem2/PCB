@@ -10,6 +10,7 @@ class MstSubCategory(BaseModel):
     sub_category_name = models.CharField(max_length=255, db_column='SUB_CATEGORY_NAME')
     category_Id = models.ForeignKey(MstCategory, on_delete=models.CASCADE, related_name='subcategories',
                                     db_column='CATEGORY_ID')
+    is_verifier = models.BooleanField(default=True, db_column='IS_VERIFIER')
     name = AliasField(db_column='SUB_CATEGORY_NAME', blank=True, null=True, editable=False)
 
     class Meta:
