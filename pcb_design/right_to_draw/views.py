@@ -44,43 +44,75 @@ class SubCategoryTwoAPIView(APIView):
     authentication_classes = [CustomJWTAuthentication]
     def get(self, request, sub_category_id):
         try:
+            right_to_draw_logs.info(f"Get Sub Category Two API View called for: {sub_category_id} -- user: {request.user}")
             response =  get_sub_categories_two_for_subcategory_id(sub_category_id)
+            l_response = len(response.data)
+            right_to_draw_logs.info(f"Get Sub Category Two Data for: {sub_category_id} -- No: Categories:{l_response}")
             return Response(response.data, status=status.HTTP_200_OK)
-        except Http404 as e:            
+        except Http404 as e:
+            error_log = f"Http404 Error in Sub Category Two API View for sub_category_id: {sub_category_id} -- user: {request.user} -- {str(e)}"          
+            right_to_draw_logs.info(error_log)
+            right_to_draw_logs.error(error_log)
             return Response({"error": str(e)}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
-            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            error_log = f"Exception Occurred in Sub Category Two API View for sub_category_id: {sub_category_id} -- user: {request.user} -- {str(e)}"
+            right_to_draw_logs.info(error_log)
+            right_to_draw_logs.error(error_log)
+            return Response({"error": f"Exception Occurred {e}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 
 class DesignOptionAPIView(APIView):
     permission_classes = [IsAuthorized]
     authentication_classes = [CustomJWTAuthentication]
     def get(self, request, sub_category_id):
+        right_to_draw_logs.info(f"Get Design Options API View called for: {sub_category_id} -- user: {request.user}")
         try:
             response =  get_design_options_for_sub_category(sub_category_id)
+            l_response = len(response)
+            right_to_draw_logs.info(f"Get Design Options Data for: {sub_category_id} -- No: Options:{l_response}")
             return Response(response, status=status.HTTP_200_OK)
         except Http404 as e:            
+            error_log = f"Http404 Error in Design Options API View for sub_category_id: {sub_category_id} -- user: {request.user} -- {str(e)}"          
+            right_to_draw_logs.info(error_log)
+            right_to_draw_logs.error(error_log)
             return Response({"error": str(e)}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
+            error_log = f"Exception Occurred in Design Options API View for sub_category_id: {sub_category_id} -- user: {request.user} -- {str(e)}"
+            right_to_draw_logs.info(error_log)
+            right_to_draw_logs.error(error_log)
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 
 class DesignRuleAPIView(APIView):
     permission_classes = [IsAuthorized]
     authentication_classes = [CustomJWTAuthentication]
-    def get(self, request):        
+    def get(self, request):
         try:
-            design_option_ids = request.query_params.get('design_option_ids', None)            
+            design_option_ids = request.query_params.get('design_option_ids', None)          
+            right_to_draw_logs.info(f"Get Design Rule API View called for: {design_option_ids} -- user: {request.user}")     
             if design_option_ids:
+                right_to_draw_logs.info(f"Provided Design Option IDs :{design_option_ids}")
                 design_option_ids = design_option_ids.split(',')                
                 design_option_ids = [int(id.strip()) for id in design_option_ids]
+                right_to_draw_logs.info(f"Get Design Rules for: {design_option_ids} -- user: {request.user}")
                 response =  get_design_rules_for_design_option(design_option_ids)
                 return Response(response, status=status.HTTP_200_OK)
             else:
+                error_log = f"Http404 Error: No design_option_ids provided"
+                right_to_draw_logs.info(error_log)
+                right_to_draw_logs.erro(error_log)    
                 raise Http404("No design_option_ids provided")
         except Http404 as e:            
+            error_log = f"Http404 Error in Design Rules API View for design_option_ids: {design_option_ids} -- user: {request.user} -- {str(e)}"          
+            right_to_draw_logs.info(error_log)
+            right_to_draw_logs.error(error_log)
             return Response({"error": str(e)}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
+            error_log = f"Exception Occurred in Design Rules API View for design_option_ids: {design_option_ids} -- user: {request.user} -- {str(e)}"
+            right_to_draw_logs.info(error_log)
+            right_to_draw_logs.error(error_log)
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
@@ -90,16 +122,22 @@ class CADDesignTemplatesAPIView(APIView):
     
     def get(self, request, *args, **kwargs):        
         cad_template_id = request.query_params.get('id', None)
-
+        #Create a log for the API call
+        right_to_draw_logs.info(f"Get CAD Design Templates API View called for: {cad_template_id} -- user: {request.user}") 
         if cad_template_id:
+            right_to_draw_logs.info(f"If CAD Template ID Provided: {cad_template_id}")
             try:                
                 cad_template = CADDesignTemplates.objects.get(id=cad_template_id)                
                 serializer = CADDesignTemplatesSerializer(cad_template)
                 return Response(serializer.data, status=status.HTTP_200_OK)
             except CADDesignTemplates.DoesNotExist:
+                error_log = f"CADDesign Templates Does Not Exist For CAD Template ID: {cad_template_id}"
+                right_to_draw_logs.info(error_log)
+                right_to_draw_logs.error(error_log)
                 return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
         
-        else:            
+        else:
+            right_to_draw_logs.info(f"If CAD Template ID Not Provided")
             cad_templates = CADDesignTemplates.objects.all()            
             serializer = CADDesignTemplatesSerializer(cad_templates, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
@@ -131,9 +169,14 @@ class CADDesignTemplatesAPIView(APIView):
         responses={201: 'Template Created', 400: 'Bad Request'}
     )
     def post(self, request):
+        #Create a log for the API call
+        right_to_draw_logs.info(f"Post CAD Design Templates API View called -- user: {request.user}")
         user = request.user
         template, error = create_cad_template(request.data, user)        
         if error:
+            error_log=f"Error in Creating Template: {error}"
+            right_to_draw_logs.info(error_log)
+            right_to_draw_logs.error(error_log)
             return Response(error, status=status.HTTP_400_BAD_REQUEST)
                 
         return Response(template.id, status=status.HTTP_201_CREATED)
@@ -147,7 +190,7 @@ class MstVerifierFieldFilterAPIView(APIView):
         component_id = request.query_params.get('component_id', None)
         category_id = request.query_params.get('category_id', None)
         sub_category_id = request.query_params.get('sub_category_id', None)
-
+        right_to_draw_logs.info(f"Get Verifier Fields API View called for: {component_id}, {category_id}, {sub_category_id} -- user: {request.user}")
         try:            
             serialized_data = get_verifier_fields_by_params(
                 component_id=component_id,
@@ -157,7 +200,10 @@ class MstVerifierFieldFilterAPIView(APIView):
 
             return Response(serialized_data, status=status.HTTP_200_OK)
 
-        except Exception as e:            
+        except Exception as e:
+            error_log = f"Exception Occurred in Verifier Fields API View for component_id: {component_id}, category_id: {category_id}, sub_category_id: {sub_category_id} -- user: {request.user} -- {str(e)}"
+            right_to_draw_logs.info(error_log)
+            right_to_draw_logs.error(error_log)            
             return Response({"error": f"Exception occurred: {e}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
@@ -190,18 +236,27 @@ class CADVerifierTemplateCreateAPIView(APIView):
         responses={201: 'Template Created', 400: 'Bad Request'}
     )
     def post(self, request):
+        right_to_draw_logs.info(f"Post CAD Verifier Templates API View called -- user: {request.user}")
         try:
             user = request.user
             try:
                 template, error = create_cad_verifier_template(request.data, user)
             except Exception as e:
-                print("Excetion Occuring on storing the record")
+                error = f"Exception occurred: {e}"
+                right_to_draw_logs.info(error)
+                right_to_draw_logs.error(error)
             res = compare_verifier_data_with_rules_and_designs(request.data)
             if error:
+                error_log=f"Error in Creating CAD Verifier Template: {error}"
+                right_to_draw_logs.info(error_log)
+                right_to_draw_logs.error(error_log)
                 return Response(error, status=status.HTTP_400_BAD_REQUEST)
                     
             return Response({"template_id":template.id, "res":res}, status=status.HTTP_201_CREATED)
-        except Exception as e:            
+        except Exception as e:
+            error_log = f"Exception Occurred in CAD Verifier Templates API View -- user: {request.user} -- {str(e)}"
+            right_to_draw_logs.info(error_log)
+            right_to_draw_logs.error(error_log)            
             return Response({"error": f"Exception occurred: {e}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
@@ -226,6 +281,7 @@ class MstVerifierFieldResultAPIView(APIView):
         responses={201: 'Results Created', 400: 'Bad Request'}
     )
     def post(self, request):
+        right_to_draw_logs.info(f"Post Verifier Fields Result API View called -- user: {request.user}")
         try:            
 
             verifier_record_data = get_verifier_record(request.data)     
@@ -233,4 +289,8 @@ class MstVerifierFieldResultAPIView(APIView):
             return Response({"res":res}, status=200)
 
         except Exception as e:            
+            error_log = f"Exception Occurred in Verifier Fields Result API View -- user: {request.user} -- {str(e)}"
+            right_to_draw_logs.info(error_log)
+            right_to_draw_logs.error(error_log)
             return Response({"error": f"Exception occurred: {e}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+

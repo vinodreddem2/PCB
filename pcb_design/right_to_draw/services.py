@@ -10,26 +10,32 @@ from .serializers import SectionGroupingsSerializer,SubCategoryTwoSerializer, CA
     SectionRulesSerializer, MstVerifierFieldSerializer, CADVerifierTemplateSerializer
 from django.http import Http404
 from django.core.exceptions import ObjectDoesNotExist
-
+from . import right_to_draw_logs
 
 def get_categories_for_component_id(component_id, is_verifier=0):
+    right_to_draw_logs.info(f"Get categories for component_id: {component_id}, is_verifier: {is_verifier}")
     try:
+        right_to_draw_logs.info(f"Prefetching Fetching related component_categories and component_categories__subcategories for Component with ID: {component_id}")
         component = MstComponent.objects.prefetch_related(
             'component_categories',
             'component_categories__subcategories'
         ).get(id=component_id)
 
         if is_verifier == 1:
+            right_to_draw_logs.info(f"If is_verifier: {is_verifier} , Fetching Component Categories by filtering is_verifier")
             categories = component.component_categories.filter(is_verifier=True)
         else:
+            right_to_draw_logs.info(f"If is_verifier: {is_verifier} , Fetching all Component Categories")
             categories = component.component_categories.all()
 
         result = []
         
         for category in categories:            
             if is_verifier == 1:
+                right_to_draw_logs.info(f"If is_verifier: {is_verifier} , Fetching subcategories by filtering is_verifier")
                 subcategories = category.subcategories.filter(is_verifier=True)
             else:
+                right_to_draw_logs.info(f"If is_verifier: {is_verifier} , Fetching all subcategories")
                 subcategories = category.subcategories.all()
                 
             subcategory_data = [
@@ -42,6 +48,7 @@ def get_categories_for_component_id(component_id, is_verifier=0):
                 }
                 for subcategory in subcategories
             ]
+            right_to_draw_logs.info(f"Subcategories data: {len(subcategory_data)}")
             
             result.append({
                 'category_id': category.id,
@@ -49,34 +56,47 @@ def get_categories_for_component_id(component_id, is_verifier=0):
                 'subcategories': subcategory_data
             })
     
-
+        right_to_draw_logs.info(f"Categories data: {len(result)}")
         return result
         
     except MstComponent.DoesNotExist:
-
+        error_log = f"Component with ID {component_id} does not exist."
+        right_to_draw_logs.info(error_log)
+        right_to_draw_logs.error(error_log)
         raise Http404("Component with the given ID does not exist.")
 
 
 def get_sub_categories_two_for_subcategory_id(sub_category_id):
+    right_to_draw_logs.info(f"Get sub-categories two for subcategory_id: {sub_category_id}")
     try:        
         sub_categories_two = MstSubCategoryTwo.objects.filter(sub_category_id=sub_category_id)
-        
+        right_to_draw_logs.info(f"Sub-categories two: {len(sub_categories_two)}")
         if not sub_categories_two:
+            error_log=f"No sub-categories two found for the given subcategory ID: {sub_category_id}"
+            right_to_draw_logs.info(error_log)
+            right_to_draw_logs.error(error_log)
             return Response({"message": "No sub-categories two found for the given subcategory."}, status=404)
          
         serialized_data = SubCategoryTwoSerializer(sub_categories_two, many=True)
         
         return serialized_data
     except MstSubCategoryTwo.DoesNotExist:
-        
+        error_log=f"sub-categories two for subcategory_id: {sub_category_id} does not exist."
+        right_to_draw_logs.info(error_log)
+        right_to_draw_logs.error(error_log)
         raise Http404("Sub-2 Categories with the given ID does not exist.")
     
 
 def get_design_options_for_sub_category(sub_category_id):
+    right_to_draw_logs.info(f"Get design options for sub_category_id: {sub_category_id}")
     try:     
         design_options = MstDesignOptions.objects.filter(sub_category_id=sub_category_id)
+        right_to_draw_logs.info(f"Design Options: {len(design_options)}")
         
         if not design_options.exists():
+            error_log=f"No Design Options found for the given Sub Category ID: {sub_category_id}"
+            right_to_draw_logs.info(error_log)
+            right_to_draw_logs.error(error_log)
             raise Http404("No Design Options found for the given Sub Category ID.")
         
         result = []
@@ -86,18 +106,22 @@ def get_design_options_for_sub_category(sub_category_id):
                 'desing_option_name': design_option.desing_option_name
             })
         
-        print("vinod result is ", result)
+        
         return result
 
     except Exception as e:
+        error_log = f"An error occurred while fetching design options: {str(e)}"
+        right_to_draw_logs.info(error_log)
+        right_to_draw_logs.error(error_log)
         raise Http404(f"An error occurred while fetching design options: {str(e)}")
 
 
 def get_design_rules_for_design_option(design_option_ids):
-    
+    right_to_draw_logs.info(f"Get design rules for design_option_ids: {design_option_ids}")
     try:
+        right_to_draw_logs.info("Prefetching MstDesignOptions and MstDesignOptions__section_groups__rules")
         design_options = MstDesignOptions.objects.prefetch_related('section_groups__rules').filter(id__in=design_option_ids)
-        
+
         rules_data = []
         unique_rule_ids = set()
 
@@ -108,10 +132,14 @@ def get_design_rules_for_design_option(design_option_ids):
                         unique_rule_ids.add(rule.id)
                         rule_serializer = SectionRulesSerializer(rule)
                         rules_data.append(rule_serializer.data)
+                        
 
         return rules_data
 
     except Exception as e:
+        error_log = f"An error occurred while fetching design rules: {str(e)}"
+        right_to_draw_logs.info(error_log)
+        right_to_draw_logs.error(error_log)
         raise Http404(f"An error occurred while fetching design rules: {str(e)}")
     
  
@@ -120,9 +148,14 @@ def create_cad_template(data, user):
     component_specifications = data.get('componentSpecifications')
     design_options = data.get('designOptions')
     
+    right_to_draw_logs.info(f"Create CAD Template for component_id: {component_id}, component_specifications: {component_specifications}, design_options: {design_options}")
     try:
         component = MstComponent.objects.get(id=component_id)
+        right_to_draw_logs.info(f"Component with ID {component_id} found")
     except MstComponent.DoesNotExist:
+        error_log=f"Component with ID {component_id} does not exist."
+        right_to_draw_logs.info(error_log)
+        right_to_draw_logs.error(error_log)
         return None, {"error": "Component not found."}
 
     data_for_serializer = {
@@ -141,36 +174,51 @@ def create_cad_template(data, user):
 
     # Create and validate the serializer
     serializer = CADDesignTemplatesSerializer(data=data_for_serializer)
-    if serializer.is_valid():        
+    if serializer.is_valid():
+        right_to_draw_logs.info("Valid Serializer")       
         cad_template = serializer.save()
         return cad_template, None
-    else:        
+    else:
+        error_log = f"Invalid serializer: {serializer.errors}"
+        right_to_draw_logs.info(error_log)
+        right_to_draw_logs.error(error_log)        
         return None, serializer.errors
 
 
 def get_verifier_fields_by_params(component_id=None, category_id=None, sub_category_id=None):    
+    right_to_draw_logs.info(f"Get verifier fields by params: component_id: {component_id}, category_id: {category_id}, sub_category_id: {sub_category_id}")
     filter_criteria = Q()
     if component_id:
+        right_to_draw_logs.info(f"Component ID: {component_id}")
         filter_criteria &= Q(component_id=component_id)
     if category_id:
+        right_to_draw_logs.info(f"Category ID: {category_id}")
         filter_criteria &= Q(category_id=category_id)
     if sub_category_id:
+        right_to_draw_logs.info(f"Sub Category ID: {sub_category_id}")
         filter_criteria &= Q(sub_category__id=sub_category_id)
     verifier_fields = MstVerifierField.objects.filter(filter_criteria).distinct().order_by('id')
-
+    right_to_draw_logs.info(f"Verifier Fields: {len(verifier_fields)}")
     serializer = MstVerifierFieldSerializer(verifier_fields, many=True)
 
     return serializer.data
 
 
 def create_cad_verifier_template(data, user):
+    right_to_draw_logs.info(f"Create CAD Verifier Template")
+    
     component_id = data.get('component')
     design_compare_data = data.get('design_compare_data', [])
     verify_compare_data = data.get('verify_compare_data', [])    
+    
     try:
         component = MstComponent.objects.get(id=component_id)
+        right_to_draw_logs.info(f"Component with ID {component_id} found")
     except MstComponent.DoesNotExist:
-        return None, {"error": "Component not found."}
+        error_log=f"Component with ID {component_id} does not exist."
+        right_to_draw_logs.info(error_log)
+        right_to_draw_logs.error(error_log)
+        return None, {"error": "Component not found."}  
     
     template_data = {
         "opp_number": data.get("oppNumber"),
@@ -189,9 +237,13 @@ def create_cad_verifier_template(data, user):
     # Create and validate the serializer
     serializer = CADVerifierTemplateSerializer(data=template_data)
     if serializer.is_valid():
+        right_to_draw_logs.info("Valid Serializer")
         cad_verifier_template = serializer.save()            
         return cad_verifier_template, None
     else:
+        error_log = f"Invalid serializer: {serializer.errors}"
+        right_to_draw_logs.info(error_log)
+        right_to_draw_logs.error(error_log)
         return None, serializer.errors
 
 
@@ -219,11 +271,10 @@ def compare_verifier_data_with_design_data(data):
     ).first()
 
     if not template:
+        right_to_draw_logs.error(f"No matching CADDesignTemplate found")
         raise ValueError("No matching CADDesignTemplate found.")
     pcb_specifications_str = template.pcb_specifications 
 
-    print("vinod type of the pcb_specifications", pcb_specifications_str)
-    print(type(pcb_specifications_str))
 
     pcb_specifications = {int(k):int(v) for k, v in pcb_specifications_str.items()}
     # import pdb
@@ -342,7 +393,8 @@ def comapre_verfier_data(verified_data):
     return verifier_res
 
 
-def compare_verifier_data_with_rules_and_designs(data):    
+def compare_verifier_data_with_rules_and_designs(data):
+    right_to_draw_logs.info("Compare verifier data with rules and designs")    
     res = {
         "opp_number": data.get("oppNumber"),
         "opu_number": data.get("opuNumber"),
@@ -352,7 +404,7 @@ def compare_verifier_data_with_rules_and_designs(data):
         "revision_number": data.get("revisionNumber"),        
     }
     # import pdb
-    # pdb.set_trace()  
+    # pdb.set_trace()
     verified_rule_data = comapre_verfier_data(data.get("verifierQueryData"))
     res['verified_query_data'] = verified_rule_data
 
@@ -367,8 +419,9 @@ def get_verifier_record(request_data):
     This function takes the request data, queries the CADVerifierTemplates table
     based on the parameters provided, and returns the data in the required format.
     """
-
+    right_to_draw_logs.info(f"Get verifier record for request data")
     # Extract the parameters from the request data
+    right_to_draw_logs.info("Extract the parameters from the request data")
     opp_number = request_data.get('oppNumber')
     opu_number = request_data.get('opuNumber')
     edu_number = request_data.get('eduNumber')
@@ -379,6 +432,7 @@ def get_verifier_record(request_data):
 
     # Query the CADVerifierTemplates table based on the parameters
     try:
+        right_to_draw_logs.info(f"Querying CADVerifierTemplates table to get verifier record for parameters: {opp_number}, {opu_number}, {edu_number}, {model_name}, {part_number}, {revision_number}, {component_id}")
         verifier_record = CADVerifierTemplates.objects.get(
             opp_number=opp_number,
             opu_number=opu_number,
@@ -389,6 +443,9 @@ def get_verifier_record(request_data):
             component_Id=component_id
         )
     except ObjectDoesNotExist as ex:
+        error_log = f"Verifier record not found: {str(ex)}"
+        right_to_draw_logs.info(error_log)
+        right_to_draw_logs.error(error_log)
         raise ObjectDoesNotExist('Verifier record not found.')
 
     # Prepare the response data in the required format
@@ -404,5 +461,5 @@ def get_verifier_record(request_data):
         'componentSpecifications': verifier_record.pcb_specifications,
         'verifierQueryData': verifier_record.verifier_query_data
     }
-
+    right_to_draw_logs.info(f"Response data prepared for the queried verifier record")
     return response_data
