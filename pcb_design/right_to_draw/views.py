@@ -11,22 +11,31 @@ from .services import get_categories_for_component_id, create_cad_template,\
     get_verifier_fields_by_params, create_cad_verifier_template, compare_verifier_data_with_rules_and_designs, get_verifier_record
 from drf_yasg.utils import swagger_auto_schema
 from .serializers import CADDesignTemplatesSerializer
+from . import right_to_draw_logs
 
 
-class ComponentDetailedAPIView(APIView):
+class ComponentAPIView(APIView):
     permission_classes = [IsAuthorized]
     authentication_classes = [CustomJWTAuthentication]
     
-    def get(self, request, component_id):        
-        try:            
-            is_verifier = int(request.GET.get('is_verifier', 0))
-            response = get_categories_for_component_id(component_id, is_verifier)            
+    def get(self, request, component_id):
+        is_verifier = int(request.GET.get('is_verifier', 0))
+        try:
+            right_to_draw_logs.info(f"Get Component API View called for: {component_id}, is_verfier:'{is_verifier}' -- user:{request.user}")            
+            response = get_categories_for_component_id(component_id, is_verifier)
+            l_response = len(response)
+            right_to_draw_logs.info(f"Get Component Data for: {component_id}, is_verfier:{is_verifier} --- No: Categories:{l_response}")
             return Response(response, status=status.HTTP_200_OK) 
         
-        except Http404 as e:            
+        except Http404 as e:
+            right_to_draw_logs.info(f"Http404 Error in Component API View for component_id: {component_id} -- user: {request.user} -- {str(e)}")
+            right_to_draw_logs.error(f"Http404 Error in Component API View for component_id: {component_id} -- user: {request.user} -- {str(e)}")
             return Response({"error": str(e)}, status=status.HTTP_404_NOT_FOUND)
         
         except Exception as e:
+            error_log = f"Exception Occurred in Component API View for component_id: {component_id} -- user: {request.user} -- {str(e)}"
+            right_to_draw_logs.info(error_log)
+            right_to_draw_logs.error(error_log)
             return Response({"error": f"Exception Occurred {e}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
