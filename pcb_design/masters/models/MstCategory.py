@@ -8,6 +8,7 @@ class MstCategory(BaseModel):
     category_name = models.CharField(max_length=255, db_column='CATEGORY_NAME')
     component_Id = models.ForeignKey(MstComponent, on_delete=models.CASCADE,
                                      related_name='component_categories', db_column='COMPONENT_ID')
+    is_verifier = models.BooleanField(default=True, db_column='IS_VERIFIER')
     name = AliasField(db_column='CATEGORY_NAME', blank=True, null=True, editable=False)
 
     
