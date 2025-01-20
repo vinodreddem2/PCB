@@ -1,13 +1,13 @@
 from django.urls import path
 
-from .views import ComponentDetailedAPIView, SubCategoryTwoAPIView,\
+from .views import ComponentAPIView, SubCategoryTwoAPIView,\
     CADDesignTemplatesAPIView, DesignOptionAPIView,DesignRuleAPIView, \
         CADVerifierTemplateCreateAPIView, MstVerifierFieldFilterAPIView, CADVerifierTemplateCreateAPIView,\
         MstVerifierFieldResultAPIView
 
 urlpatterns = [
     # Pull ALl the categories and Sub Categories for the Given Component
-    path('pcb-specification/<int:component_id>/', ComponentDetailedAPIView.as_view()),    
+    path('pcb-specification/<int:component_id>/', ComponentAPIView.as_view()),    
     # Pull Level 2 Drop down values for a given category Id
     path('sub-categories-two/<int:sub_category_id>/', SubCategoryTwoAPIView.as_view(), name='sub-categories-two'),
     # Get /Post the Cad Design Template for the submitting User
