@@ -45,7 +45,7 @@ def get_categories_for_component_id(component_id, is_verifier=0):
                 }
                 for subcategory in subcategories
             ]
-            right_to_draw_logs.info(f"Subcategories data: {len(subcategory_data)}")
+            right_to_draw_logs.info(f"Number of Subcategories: {len(subcategory_data)} for Category: {category.name}")
             
             result.append({
                 'category_id': category.id,
@@ -175,7 +175,7 @@ def create_cad_template(data, user):
             Revision Number {data.get('revisionNumber')}"
     
     if serializer.is_valid():  
-        right_to_draw_logs.info("CAD Design Template Saving {log_Str}")      
+        right_to_draw_logs.info(f"CAD Design Template Saving {log_Str}")      
         cad_template = serializer.save()
         return cad_template, None
     else:
@@ -349,7 +349,8 @@ def compare_verifier_data_with_design_data(data):
     ).first()
 
     if not template:
-        right_to_draw_logs.error(f"No matching CADDesignTemplate found for Verifier Template {log_str}")        
+        right_to_draw_logs.error(f"No matching CADDesignTemplate found for Verifier Template {log_str}")
+        return {}       
     
     pcb_specifications_str = template.pcb_specifications 
     pcb_specifications = {int(k):int(v) for k, v in pcb_specifications_str.items()}
@@ -492,13 +493,17 @@ def compare_verifier_data_with_rules_and_designs(data):
     }
 
     result_string = ", ".join(f"{key}: {value}" for key, value in res.items())
+    
+    design_specification_data = compare_verifier_data_with_design_data(data)
+    if not design_specification_data:
+        return {}
+    res['verify_design_fields_data']= design_specification_data
 
     right_to_draw_logs.info(f"Compare verifier data with rules and designs for {result_string}")    
     verified_rule_data = comapre_verfier_data(data.get("verifierQueryData"))
     res['verified_query_data'] = verified_rule_data
 
-    design_specification_data = compare_verifier_data_with_design_data(data)
-    res['verify_design_fields_data']= design_specification_data
+
     right_to_draw_logs.info(f"Verification Completed for {result_string}")
     return res
 
