@@ -169,9 +169,10 @@ def create_cad_template(data, user):
 
     # Create and validate the serializer
     serializer = CADDesignTemplatesSerializer(data=data_for_serializer)
-    log_Str = f"for component_id: {component_id}, Opp Number {data.get("oppNumber")}, \
-            Opu Number {data.get("opuNumber")}, Edu Number {data.get("eduNumber")}, Model Name {data.get("modelName")}, \
-            Part Number {data.get('partNumber')}, Revision Number {data.get('revisionNumber')}"
+    log_Str = f"for component_id: {component_id}, Opp Number {data.get('oppNumber')}, \
+            Opu Number {data.get('opuNumber')}, Edu Number {data.get('eduNumber')}, \
+            Model Name {data.get('modelName')}, Part Number {data.get('partNumber')}, \
+            Revision Number {data.get('revisionNumber')}"
     
     if serializer.is_valid():  
         right_to_draw_logs.info("CAD Design Template Saving {log_Str}")      
