@@ -120,18 +120,17 @@ class CADDesignTemplatesAPIView(APIView):
     permission_classes = [IsAuthorized]
     authentication_classes = [CustomJWTAuthentication]
     
-    def get(self, request, *args, **kwargs):        
-        cad_template_id = request.query_params.get('id', None)
+    def get(self, request,  id, *args, **kwargs):                
         #Create a log for the API call
-        right_to_draw_logs.info(f"Get CAD Design Templates API View called for: {cad_template_id} -- user: {request.user}") 
-        if cad_template_id:
-            right_to_draw_logs.info(f"If CAD Template ID Provided: {cad_template_id}")
+        right_to_draw_logs.info(f"Get CAD Design Templates API View called for: {id} -- user: {request.user}") 
+        if id:
+            right_to_draw_logs.info(f"If CAD Template ID Provided: {id}")
             try:                
-                cad_template = CADDesignTemplates.objects.get(id=cad_template_id)                
+                cad_template = CADDesignTemplates.objects.get(id=id)                
                 serializer = CADDesignTemplatesSerializer(cad_template)
                 return Response(serializer.data, status=status.HTTP_200_OK)
             except CADDesignTemplates.DoesNotExist:
-                error_log = f"CADDesign Templates Does Not Exist For CAD Template ID: {cad_template_id}"
+                error_log = f"CADDesign Templates Does Not Exist For CAD Template ID: {id}"
                 right_to_draw_logs.info(error_log)
                 right_to_draw_logs.error(error_log)
                 return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
@@ -238,20 +237,27 @@ class CADVerifierTemplateCreateAPIView(APIView):
     def post(self, request):
         right_to_draw_logs.info(f"Post CAD Verifier Templates API View called -- user: {request.user}")
         try:
-            user = request.user
+            user = request.user        
+            res = compare_verifier_data_with_rules_and_designs(request.data)
+            if not res:
+                right_to_draw_logs.info(f"Designer Data does not match with the rules and designs to verify further")
+                right_to_draw_logs.error(f"Designer Data does not match with the rules and designs to verify further")
+                return Response("Invalid Data, Designer Data is not present for selected Values", status=status.HTTP_400_BAD_REQUEST)
+            
             try:
                 template, error = create_cad_verifier_template(request.data, user)
             except Exception as e:
                 error = f"Exception occurred: {e}"
                 right_to_draw_logs.info(error)
                 right_to_draw_logs.error(error)
-            res = compare_verifier_data_with_rules_and_designs(request.data)
+                raise "Exception occurred {e}"
+                        
             if error:
                 error_log=f"Error in Creating CAD Verifier Template: {error}"
                 right_to_draw_logs.info(error_log)
                 right_to_draw_logs.error(error_log)
                 return Response(error, status=status.HTTP_400_BAD_REQUEST)
-                    
+            
             return Response({"template_id":template.id, "res":res}, status=status.HTTP_201_CREATED)
         except Exception as e:
             error_log = f"Exception Occurred in CAD Verifier Templates API View -- user: {request.user} -- {str(e)}"
@@ -286,6 +292,11 @@ class MstVerifierFieldResultAPIView(APIView):
 
             verifier_record_data = get_verifier_record(request.data)     
             res = compare_verifier_data_with_rules_and_designs(verifier_record_data)
+            if not res:
+                right_to_draw_logs.info(f"Designer Data does not match with the rules and designs to verify further")
+                right_to_draw_logs.error(f"Designer Data does not match with the rules and designs to verify further")
+                return Response("Invalid Data, Designer Data is not present for selected Values", status=status.HTTP_400_BAD_REQUEST)
+            
             return Response({"res":res}, status=200)
 
         except Exception as e:            

@@ -2,48 +2,9 @@ import os
 import logging
 import traceback
 from logging.handlers import RotatingFileHandler, TimedRotatingFileHandler, SMTPHandler
-import time
-import smtplib
 import warnings
 warnings.simplefilter('always', DeprecationWarning)
-
-
-class SizedTimedRotatingFileHandler(TimedRotatingFileHandler):
-    """
-    Handler for logging to a set of files, which switches from one file
-    to the next when the current file reaches a certain size, or at certain
-    timed intervals
-    """
-
-    def __init__(self, filename, maxBytes=0, backupCount=0, encoding=None,
-                 delay=0, when='h', interval=1, utc=False):
-        TimedRotatingFileHandler.__init__(
-            self, filename, when, interval, backupCount, encoding, delay, utc)
-        self.maxBytes = maxBytes
-
-    def shouldRollover(self, record):
-        """
-        Determine if rollover should occur.
-
-        Basically, see if the supplied record would cause the file to exceed
-        the size limit we have.
-        """
-
-        # Size based rotation condition
-        if self.stream is None:                 # delay was set...
-            self.stream = self._open()
-        if self.maxBytes > 0:                   # are we rolling over?
-            msg = "%s\n" % self.format(record)
-            self.stream.seek(0, 2)  # due to non-posix-compliant Windows feature
-            if self.stream.tell() + len(msg) >= self.maxBytes:
-                return 1
-
-        # Time based rotation condition
-        t = int(time.time())
-        if t >= self.rolloverAt:
-            return 1
-        return 0
-
+from datetime import datetime
 
 class MyFilter(object):
     def __init__(self, level):
@@ -51,21 +12,6 @@ class MyFilter(object):
 
     def filter(self, log_record):
         return log_record.levelno <= self.__level
-
-
-class ExperimentalFeatureWarning(Warning):
-    pass
-
-
-class ArgumentError(Exception):
-
-    # Constructor or Initializer
-    def __init__(self, value):
-        self.value = value
-
-    # __str__ is to print() the value
-    def __str__(self):
-        return repr(self.value)
 
 
 def prepare_log_directory(log_name, log_directory):
@@ -108,7 +54,7 @@ def prepare_log_directory(log_name, log_directory):
 
 def init_logging(log_name='logger', log_directory='logs', log_mode='a', max_bytes=100 * 1024 * 1024,
                  rotate_when='d', rotate_interval=1, backup_count=20, encoding=None, delay=0,
-                 log_level='INFO', console_log=True, rotation_criteria='size',
+                 log_level='INFO', console_log=True, rotation_criteria='time',
                  log_format='[%(asctime)s] -- %(levelname)s - %(filename)s -- %(funcName)s - Line no - %(lineno)d '
                             '-- %(message)s\n'):
     """
@@ -161,29 +107,14 @@ def init_logging(log_name='logger', log_directory='logs', log_mode='a', max_byte
         stream_handler = logging.StreamHandler()
         stream_handler.setFormatter(log_formatter)
 
+        today_str = datetime.now().strftime('%Y-%m-%d')
         # Variables for log paths for DEBUG, INFO, WARN, ERROR
-        debug_log_file_name = os.path.join(os.path.join(logs_path, 'Debug'), (log_name + '.debug'))
-        info_log_file_name = os.path.join(os.path.join(logs_path, 'Info'), (log_name + '.info'))
-        warning_log_file_name = os.path.join(os.path.join(logs_path, 'Warning'), (log_name + '.warn'))
-        error_log_file_name = os.path.join(os.path.join(logs_path, 'Error'), (log_name + '.error'))
+        debug_log_file_name = os.path.join(os.path.join(logs_path, 'Debug'), (log_name + '_' + today_str + '.debug'))
+        info_log_file_name = os.path.join(os.path.join(logs_path, 'Info'), (log_name + '_' + today_str +  '.info'))
+        warning_log_file_name = os.path.join(os.path.join(logs_path, 'Warning'), (log_name + '_' + today_str +  '.warn'))
+        error_log_file_name = os.path.join(os.path.join(logs_path, 'Error'), (log_name + '_' + today_str +  '.error'))
 
-        if rotation_criteria.lower() in ('timeandsize', 'sizeandtime'):
-            warnings.warn('Using both time and size based rotation is in '
-                          'experimental mode. \nPlease do not use in PROD environment',
-                          category=ExperimentalFeatureWarning)
-            debug_file_handler = SizedTimedRotatingFileHandler(debug_log_file_name, when=rotate_when,
-                                                               interval=rotate_interval, backupCount=backup_count,
-                                                               encoding=encoding, delay=delay, maxBytes=max_bytes)
-            info_file_handler = SizedTimedRotatingFileHandler(info_log_file_name, when=rotate_when,
-                                                              interval=rotate_interval, backupCount=backup_count,
-                                                              encoding=encoding, delay=delay, maxBytes=max_bytes)
-            warning_file_handler = SizedTimedRotatingFileHandler(warning_log_file_name, when=rotate_when,
-                                                                 interval=rotate_interval, backupCount=backup_count,
-                                                                 encoding=encoding, delay=delay, maxBytes=max_bytes)
-            error_file_handler = SizedTimedRotatingFileHandler(error_log_file_name, when=rotate_when,
-                                                               interval=rotate_interval, backupCount=backup_count,
-                                                               encoding=encoding, delay=delay, maxBytes=max_bytes)
-        elif rotation_criteria.lower() == 'time':
+        if rotation_criteria.lower() == 'time':
             # Log handlers for time based file rotation
             debug_file_handler = TimedRotatingFileHandler(debug_log_file_name, when=rotate_when,
                                                           interval=rotate_interval, backupCount=backup_count,
