@@ -6,4 +6,7 @@ venv
 env
 /staticfiles
 __pycache__
+logs
+/.vscode
+/logs
 
