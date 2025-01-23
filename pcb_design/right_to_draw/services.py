@@ -8,7 +8,7 @@ from masters.models import MstComponent, MstSubCategoryTwo, MstDesignOptions, Ms
     MstSectionGroupings, MstVerifierField, MstVerifierField, MstVerifierRules, MstCategory, MstSubCategory, \
     MstConditions
 from .serializers import SectionGroupingsSerializer,SubCategoryTwoSerializer, CADDesignTemplatesSerializer, \
-    SectionRulesSerializer, MstVerifierFieldSerializer, CADVerifierTemplateSerializer
+    SectionRulesSerializer, MstVerifierFieldSerializer, CADVerifierTemplateSerializer,CADApproverTemplateSerializer
 from django.http import Http404
 from django.core.exceptions import ObjectDoesNotExist
 from . import right_to_draw_logs
@@ -557,3 +557,40 @@ def get_verifier_record(request_data):
     }
     right_to_draw_logs.info(f"Response data prepared for the queried verifier record")
     return response_data
+
+
+def approver_result_service(data):
+    try:
+        template_data = {
+            "opp_number": data.get("oppNumber"),
+            "opu_number": data.get("opuNumber"),
+            "edu_number": data.get("eduNumber"),
+            "model_name": data.get("modelName"),
+            "part_number": data.get("partNumber"),
+            "revision_number": data.get("revisionNumber"),
+            "component_Id":data.component_Id,
+            "pcb_specifications": data.get("pcb_specifications", {}),
+            "approver_query_data": data.get("approver_query_data", {}),
+        }
+    
+        serializer = CADApproverTemplateSerializer(data=template_data)
+    
+        if serializer.is_valid():        
+            serializer.save()
+            return {
+                    'status_code': status.HTTP_201_CREATED,
+                    'data': serializer.data,
+                    'error': None
+                }
+              
+        return {
+                'status_code': status.HTTP_400_BAD_REQUEST,
+                'data': None,
+                'error': serializer.errors
+            }
+    except Exception as e:
+            return {
+                'status_code': status.HTTP_500_INTERNAL_SERVER_ERROR,
+                'data': None,
+                'error': str(e)
+            }

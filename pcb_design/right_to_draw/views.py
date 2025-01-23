@@ -8,7 +8,7 @@ from authentication.custom_authentication import CustomJWTAuthentication
 from .models import CADDesignTemplates
 from .services import get_categories_for_component_id, create_cad_template,\
     get_sub_categories_two_for_subcategory_id,  get_design_options_for_sub_category,get_design_rules_for_design_option,\
-    get_verifier_fields_by_params, create_cad_verifier_template, compare_verifier_data_with_rules_and_designs, get_verifier_record
+    get_verifier_fields_by_params, create_cad_verifier_template, compare_verifier_data_with_rules_and_designs, get_verifier_record,approver_result_service
 from drf_yasg.utils import swagger_auto_schema
 from .serializers import CADDesignTemplatesSerializer
 from . import right_to_draw_logs
@@ -305,3 +305,37 @@ class MstVerifierFieldResultAPIView(APIView):
             right_to_draw_logs.error(error_log)
             return Response({"error": f"Exception occurred: {e}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+class ApproverFieldFilterAPIView(APIView):
+    permission_classes = [IsAuthorized]
+    authentication_classes = [CustomJWTAuthentication]
+
+    def get(self, request):        
+        component_id = request.query_params.get('component_id', None)
+        category_id = request.query_params.get('category_id', None)
+        sub_category_id = request.query_params.get('sub_category_id', None)
+        right_to_draw_logs.info(f"Get Approver Fields API View called for: {component_id}, {category_id}, {sub_category_id} -- user: {request.user}")
+        try:            
+            serialized_data = get_verifier_fields_by_params(
+                component_id=component_id,
+                category_id=category_id,
+                sub_category_id=sub_category_id
+            )                        
+
+            return Response(serialized_data, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            error_log = f"Exception Occurred in Approver Fields API View for component_id: {component_id}, category_id: {category_id}, sub_category_id: {sub_category_id} -- user: {request.user} -- {str(e)}"
+            right_to_draw_logs.info(error_log)
+            right_to_draw_logs.error(error_log)            
+            return Response({"error": f"Exception occurred: {e}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class ApproverFieldResultAPIView(APIView):
+    permission_classes = [IsAuthorized]
+    authentication_classes = [CustomJWTAuthentication]
+    
+    def post(self, request):
+        result = approver_result_service(request.data)
+        if result['data'] is None:
+            return Response(result['error'], status=result['status_code'])
+        return Response(result['data'], status=result['status_code'])

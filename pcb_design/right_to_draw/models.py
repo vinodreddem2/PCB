@@ -36,6 +36,10 @@ class CADVerifierTemplates(BaseModel):
 
 
 class CADApproverTemplates(BaseModel):
+    STATUS_CHOICES = [
+        ('APPROVED', 'Approved'),
+        ('REJECTED', 'Rejected'),
+    ]
     opp_number = models.CharField(max_length=255, unique=True, db_column='OPP_NUMBER')
     opu_number = models.CharField(max_length=255, unique=True, db_column='OPU_NUMBER')
     edu_number = models.CharField(max_length=255, unique=True, db_column='EDU_NUMBER')
@@ -46,6 +50,18 @@ class CADApproverTemplates(BaseModel):
                                      db_column='COMPONENT_ID')
     pcb_specifications = models.JSONField(db_column='PCB_SPECIFICATIONS')
     approver_data = models.JSONField(db_column='APPROVER_QUERY_DATA')
+    status = models.CharField(
+        max_length=8,
+        choices=STATUS_CHOICES,
+        db_column='APPROVER_STATUS',
+        null=True,
+        blank=True
+    )
+    comments = models.TextField(
+        null=True,     
+        blank=True,    
+       db_column='APPROVER_COMMENTS'
+    )
     
     def __str__(self):
         return f"{self.model_name} ({self.part_number})"
