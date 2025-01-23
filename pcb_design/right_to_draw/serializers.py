@@ -3,15 +3,16 @@ from django.utils.encoding import force_str
 from django.utils.http import urlsafe_base64_decode
 
 from .models import MstComponent
-from .models import CADDesignTemplates
-from masters.models import MstSubCategory,MstCategory, MstSectionRules, MstSectionGroupings,MstSubCategoryTwo
-from authentication.models import CustomUser
-from .utils import token_generator
+from .models import CADDesignTemplates, CADVerifierTemplates
+from masters.models import MstSubCategory,MstCategory, MstSectionRules, MstSectionGroupings,MstSubCategoryTwo,\
+    MstVerifierField
+
+
 class ComponentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = MstComponent
-        fields = '__all__'
+        fields = ['id', 'component_name', 'description']
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -34,31 +35,28 @@ class SectionRulesSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = MstSectionRules
-        fields = '__all__'        
+        fields = ['id', 'design_doc', 'rule_number', 'parameter', 'min_value', 'max_value', 'nominal', 'comments']       
 
 
-class CADDesignTemplatesSerializer(serializers.ModelSerializer):
-    component_Id = ComponentSerializer()  # Nested serializer
-
+class CADDesignTemplatesSerializer(serializers.ModelSerializer):       
     class Meta:
         model = CADDesignTemplates
-        fields = '__all__'        
+        fields = '__all__'
 
+   
 
 class SectionGroupingsSerializer(serializers.ModelSerializer):
     rules = SectionRulesSerializer(many=True)
 
     class Meta:
         model = MstSectionGroupings
-        fields = ['id', 'design_doc', 'design_name', 'rules']
+        fields = ['id', 'design_doc', 'section_name', 'rules', 'design_options']
         
 
-class SubCategoryTwoSerializer(serializers.ModelSerializer):
-    sub_category_id = SubCategorySerializer()  # Nested serializer for SubCategory
-
+class SubCategoryTwoSerializer(serializers.ModelSerializer):    
     class Meta:
         model = MstSubCategoryTwo
-        fields = ['id', 'sub_2_category_name', 'sub_category_id']
+        fields = ['id', 'sub_2_category_name']
 
        
 class CustomSubCategorySerializer(serializers.Serializer):
@@ -112,29 +110,13 @@ class CustomComponentSerializer(serializers.Serializer):
         }
 
 
-class RequestPasswordResetSerializer(serializers.Serializer):
-    email = serializers.EmailField()
+class MstVerifierFieldSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MstVerifierField
+        fields = ['id', 'field_name']
 
-    def validate_email(self, value):
-        try:
-            user = CustomUser.objects.get(email=value)
-            return value
-        except CustomUser.DoesNotExist:
-            raise serializers.ValidationError("User with this email does not exist.")
 
-class PasswordResetSerializer(serializers.Serializer):
-    password = serializers.CharField(write_only=True, min_length=8)
-    token = serializers.CharField()
-    uidb64 = serializers.CharField()
-
-    def validate(self, data):
-        try:
-            uid = force_str(urlsafe_base64_decode(data['uidb64']))
-            user = CustomUser.objects.get(pk=uid)
-        except (TypeError, ValueError, OverflowError, CustomUser.DoesNotExist):
-            raise serializers.ValidationError("Invalid reset link")
-
-        if not token_generator.check_token(user, data['token']):
-            raise serializers.ValidationError("Reset link has expired")
-
-        return data
+class CADVerifierTemplateSerializer(serializers.ModelSerializer):       
+    class Meta:
+        model = CADVerifierTemplates
+        fields = '__all__'

@@ -1,7 +1,8 @@
 from rest_framework import permissions
 from django.contrib.auth.models import Permission
-class IsAuthorized(permissions.BasePermission):
 
+
+class IsAuthorized(permissions.BasePermission):
     def has_permission(self, request, view):
         """
         Checking if user has permissions to access this viewset

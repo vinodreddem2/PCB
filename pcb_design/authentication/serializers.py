@@ -8,9 +8,9 @@ from django.contrib.auth.password_validation import validate_password
 
 valid_roles = ['Admin', 'CADesigner', 'Approver', 'Verifier']
 
+
 class UserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
-
     class Meta:
         model = CustomUser
         fields = ['id','email', 'password']
@@ -48,6 +48,7 @@ class RegisterSerializer(serializers.ModelSerializer):
         print("vinod role is ", role)
         if role not in valid_roles:
             role = 'CADesigner'
+        user.role = role
         group, created = Group.objects.get_or_create(name=role)
 
         # Assign the user to the group

@@ -14,16 +14,31 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+from rest_framework.permissions import IsAuthenticated
 from django.contrib import admin
 from django.urls import path,include
-# staticfiles
-from django.contrib.staticfiles.urls import staticfiles_urlpatterns
+from drf_yasg.views import get_schema_view
+from drf_yasg import openapi
+from authentication.custom_authentication import CustomJWTAuthentication
+
+schema_view = get_schema_view(
+    openapi.Info(
+        title="PCB Design API",
+        default_version='v1',
+        description="API documentation for the PCB Design project",
+        terms_of_service="https://www.google.com/policies/terms/",
+        contact=openapi.Contact(email="support@yourdomain.com"),
+        license=openapi.License(name="MIT License"),
+    ),
+    public=True,
+)
+
 urlpatterns = [
     # create path for authentication app
+    path('swagger/', schema_view.with_ui(), name='swagger-docs'),
     path('auth/', include('authentication.urls')),
     path('right-draw/', include('right_to_draw.urls')),
     path('masters/', include('masters.urls')),
     path('admin/', admin.site.urls),
 ]
 
-urlpatterns += staticfiles_urlpatterns()
