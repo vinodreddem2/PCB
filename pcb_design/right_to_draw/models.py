@@ -53,7 +53,9 @@ class CADApproverTemplates(BaseModel):
     status = models.CharField(
         max_length=8,
         choices=STATUS_CHOICES,
-        db_column='APPROVER_STATUS'
+        db_column='APPROVER_STATUS',
+        null=True,
+        blank=True
     )
     comments = models.TextField(
         null=True,     
