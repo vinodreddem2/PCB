@@ -8,10 +8,12 @@ from authentication.custom_authentication import CustomJWTAuthentication
 from .models import CADDesignTemplates
 from .services import get_categories_for_component_id, create_cad_template,\
     get_sub_categories_two_for_subcategory_id,  get_design_options_for_sub_category,get_design_rules_for_design_option,\
-    get_verifier_fields_by_params, create_cad_verifier_template, compare_verifier_data_with_rules_and_designs, get_verifier_record,approver_result_service
+    get_verifier_fields_by_params, create_cad_verifier_template, compare_verifier_data_with_rules_and_designs, get_verifier_record, \
+    save_approver_results
 from drf_yasg.utils import swagger_auto_schema
 from .serializers import CADDesignTemplatesSerializer
 from . import right_to_draw_logs
+from django.core.exceptions import ObjectDoesNotExist
 
 
 class ComponentAPIView(APIView):
@@ -305,37 +307,99 @@ class MstVerifierFieldResultAPIView(APIView):
             right_to_draw_logs.error(error_log)
             return Response({"error": f"Exception occurred: {e}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-class ApproverFieldFilterAPIView(APIView):
+
+
+class ApproverAPIView(APIView):
     permission_classes = [IsAuthorized]
     authentication_classes = [CustomJWTAuthentication]
 
-    def get(self, request):        
-        component_id = request.query_params.get('component_id', None)
-        category_id = request.query_params.get('category_id', None)
-        sub_category_id = request.query_params.get('sub_category_id', None)
-        right_to_draw_logs.info(f"Get Approver Fields API View called for: {component_id}, {category_id}, {sub_category_id} -- user: {request.user}")
-        try:            
-            serialized_data = get_verifier_fields_by_params(
-                component_id=component_id,
-                category_id=category_id,
-                sub_category_id=sub_category_id
-            )                        
+    def get(self, request):
+        oppNumber = request.query_params.get('oppNumber', None)
+        opuNumber = request.query_params.get('opuNumber', None)
+        eduNumber = request.query_params.get('eduNumber', None)
+        modelName = request.query_params.get('modelName', None)
+        partNumber = request.query_params.get('partNumber', None)
+        revisionNumber = request.query_params.get('revisionNumber', None)
+        component = request.query_params.get('component', None)
+        
+        data = {
+            'oppNumber': oppNumber,
+            'opuNumber': opuNumber,
+            'eduNumber': eduNumber,
+            'modelName': modelName,
+            'partNumber': partNumber,
+            'revisionNumber': revisionNumber,
+            'component': component
+        }
 
-            return Response(serialized_data, status=status.HTTP_200_OK)
+        log_Str = f"For OppNumber: {oppNumber}, OpuNumber: {opuNumber}, EduNumber: {eduNumber}, ModelName: {modelName}, PartNumber: {partNumber}, RevisionNumber: {revisionNumber}, Component: {component}"
+        right_to_draw_logs.info(f"Get Approver Fields API View called for: {log_Str}")
 
+        try:
+            try:
+                verifier_record_data = get_verifier_record(data)
+            except ObjectDoesNotExist as e:
+                error_log = f"Object Does Not Exist in Approver API View -- user: {request.user} -- {str(e)} for {log_Str}"
+                right_to_draw_logs.info(error_log)
+                right_to_draw_logs.error(error_log)
+                return Response({"error": f"No Approver Record Found For Given Variables: {str(e)}"}, status=status.HTTP_404_NOT_FOUND)
+          
+            res = compare_verifier_data_with_rules_and_designs(verifier_record_data)
+            if not res:
+                right_to_draw_logs.info(f"Designer Data does not match with the rules and designs to verify further")
+                right_to_draw_logs.error(f"Designer Data does not match with the rules and designs to verify further")
+                return Response("Invalid Data, Designer Data is not present for selected Values", status=status.HTTP_400_BAD_REQUEST)
+            return Response({"res":res}, status=200)
         except Exception as e:
-            error_log = f"Exception Occurred in Approver Fields API View for component_id: {component_id}, category_id: {category_id}, sub_category_id: {sub_category_id} -- user: {request.user} -- {str(e)}"
+            error_log = f"Exception Occurred in Approver API View -- user: {request.user} -- {str(e)} : for {log_Str}"
             right_to_draw_logs.info(error_log)
-            right_to_draw_logs.error(error_log)            
+            right_to_draw_logs.error(error_log)
             return Response({"error": f"Exception occurred: {e}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-class ApproverFieldResultAPIView(APIView):
-    permission_classes = [IsAuthorized]
-    authentication_classes = [CustomJWTAuthentication]
     
+    @swagger_auto_schema(
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={
+                'oppNumber': openapi.Schema(type=openapi.TYPE_STRING, description='Opp Number'),
+                'opuNumber': openapi.Schema(type=openapi.TYPE_STRING, description='Opu Number'),
+                'eduNumber': openapi.Schema(type=openapi.TYPE_STRING, description='Edu Number'),
+                'modelName': openapi.Schema(type=openapi.TYPE_STRING, description='Model Name'),
+                'partNumber': openapi.Schema(type=openapi.TYPE_STRING, description='Part Number'),
+                'revisionNumber': openapi.Schema(type=openapi.TYPE_STRING, description='Revision Number'),
+                'component': openapi.Schema(type=openapi.TYPE_INTEGER, description='Component ID (e.g., b14)'),
+                'componentSpecifications': openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    additional_properties=openapi.Schema(type=openapi.TYPE_STRING, description="Dynamic specification fields")
+                ),
+                'approverQueryData': openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    additional_properties=openapi.Schema(type=openapi.TYPE_STRING, description="Verifier query fields")
+                ),
+                "status": openapi.Schema(type=openapi.TYPE_STRING, description="Status of the Approver"),
+                "comments": openapi.Schema(type=openapi.TYPE_STRING, description="Comments for the Approver")
+            },
+            required=['oppNumber', 'opuNumber', 'modelName', 'partNumber', 'component'],
+        ),
+        responses={201: 'Template Created', 400: 'Bad Request'}
+    )
     def post(self, request):
-        result = approver_result_service(request.data)
-        if result['data'] is None:
-            return Response(result['error'], status=result['status_code'])
-        return Response(result['data'], status=result['status_code'])
+        if request.user.is_authenticated:
+            user = request.user  # This should be a CustomUser instance if the user is authenticated
+        else:
+            return Response({"error": "User is not authenticated"}, status=status.HTTP_401_UNAUTHORIZED)
+        right_to_draw_logs.info(f"Post Approver Fields API View called -- user: {request.user}")
+        try:
+            user = request.user            
+            result, err = save_approver_results(request.data, user)
+            if err:
+                error_log = f"Error in Saving Approver Results: {err}"
+                right_to_draw_logs.info(error_log)
+                right_to_draw_logs.error(error_log)
+                return Response(err, status=status.HTTP_400_BAD_REQUEST)
+            
+            return Response({"template_id":result.id}, status=200)
+        except Exception as e:
+            error_log = f"Exception Occurred in Approver API View -- user: {request.user} -- {str(e)}"
+            right_to_draw_logs.info(error_log)
+            right_to_draw_logs.error(error_log)
+            return Response({"error": f"Exception occurred: {e}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

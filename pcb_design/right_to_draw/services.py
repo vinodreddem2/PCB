@@ -559,7 +559,7 @@ def get_verifier_record(request_data):
     return response_data
 
 
-def approver_result_service(data):
+def save_approver_results(data, user):
     try:
         template_data = {
             "opp_number": data.get("oppNumber"),
@@ -568,29 +568,29 @@ def approver_result_service(data):
             "model_name": data.get("modelName"),
             "part_number": data.get("partNumber"),
             "revision_number": data.get("revisionNumber"),
-            "component_Id":data.component_Id,
-            "pcb_specifications": data.get("pcb_specifications", {}),
-            "approver_query_data": data.get("approver_query_data", {}),
+            "component_Id":data.get('component'),
+            "pcb_specifications": data.get("componentSpecifications", {}),
+            "approver_data": data.get("approverQueryData", {}),
+            "status": data.get("status"),
+            "comments": data.get("comments"),
+            "created_by": user.id,
+            "updated_by": user.id
         }
-    
         serializer = CADApproverTemplateSerializer(data=template_data)
-    
+
+        log_str = f"for component_id: {data.get('component')}, Opp Number {data.get('oppNumber')}, \
+                    Opu Number {data.get('opuNumber')}, Edu Number {data.get('eduNumber')}, Model Name {data.get('modelName')}, \
+                    Part Number {data.get('partNumber')}, Revision Number {data.get('revisionNumber')}"
+        
         if serializer.is_valid():        
-            serializer.save()
-            return {
-                    'status_code': status.HTTP_201_CREATED,
-                    'data': serializer.data,
-                    'error': None
-                }
-              
-        return {
-                'status_code': status.HTTP_400_BAD_REQUEST,
-                'data': None,
-                'error': serializer.errors
-            }
-    except Exception as e:
-            return {
-                'status_code': status.HTTP_500_INTERNAL_SERVER_ERROR,
-                'data': None,
-                'error': str(e)
-            }
+            template = serializer.save()
+            return template, None
+            
+        else:
+            right_to_draw_logs.error(f"Error Saving in Approver Template {log_str} -- Error is {serializer.errors}")
+            right_to_draw_logs.info(f"Error Saving in Approver Template {log_str} -- Error is {serializer.errors}")        
+            return None, serializer.errors
+    except Exception as ex:
+        right_to_draw_logs.error(f"An error occurred while saving approver template: {str(ex)}")
+        right_to_draw_logs.info(f"An error occurred while saving approver template: {str(ex)}")
+        return None, str(ex)
