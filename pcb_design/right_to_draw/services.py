@@ -163,8 +163,8 @@ def create_cad_template(data, user):
         "component_Id": component.pk,
         "pcb_specifications": component_specifications,
         "smt_design_options": design_options,
-        'created_by':user.pk,
-        'updated_by': user.pk
+        # 'created_by':user.pk,
+        # 'updated_by': user.pk
     }
 
     # Create and validate the serializer
@@ -589,8 +589,8 @@ def save_approver_results(data, user):
             "approver_data": data.get("approverQueryData", {}),
             "status": data.get("status"),
             "comments": data.get("comments"),
-            "created_by": user.id,
-            "updated_by": user.id
+            # "created_by": user.id,
+            # "updated_by": user.id
         }
         serializer = CADApproverTemplateSerializer(data=template_data)
 
