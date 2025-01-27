@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from drf_yasg import openapi
 from authentication.custom_permissions import IsAuthorized
 from authentication.custom_authentication import CustomJWTAuthentication
-from .models import CADDesignTemplates
+from .models import CADDesignTemplates, CADVerifierTemplates
 from .services import get_categories_for_component_id, create_cad_template,\
     get_sub_categories_two_for_subcategory_id,  get_design_options_for_sub_category,get_design_rules_for_design_option,\
     get_verifier_fields_by_params, create_cad_verifier_template, compare_verifier_data_with_rules_and_designs, get_verifier_record, \
@@ -400,6 +400,48 @@ class ApproverAPIView(APIView):
             return Response({"template_id":result.id}, status=200)
         except Exception as e:
             error_log = f"Exception Occurred in Approver API View -- user: {request.user} -- {str(e)}"
+            right_to_draw_logs.info(error_log)
+            right_to_draw_logs.error(error_log)
+            return Response({"error": f"Exception occurred: {e}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class CheckDesignerAndVerifierRecordAPIView(APIView):
+    permission_classes = [IsAuthorized]
+    authentication_classes = [CustomJWTAuthentication]
+
+    def get(self, request):
+        oppNumber = request.query_params.get('oppNumber', None)
+        opuNumber = request.query_params.get('opuNumber', None)
+        eduNumber = request.query_params.get('eduNumber', None)
+        modelName = request.query_params.get('modelName', None)
+        partNumber = request.query_params.get('partNumber', None)
+        revisionNumber = request.query_params.get('revisionNumber', None)            
+        component = request.query_params.get('component', None)
+
+        data = {
+            'opp_number': oppNumber,
+            'opu_number': opuNumber,
+            'edu_number': eduNumber,
+            'model_name': modelName,
+            'part_number': partNumber,
+            'revision_number': revisionNumber,
+            'component_Id':component                 
+        }
+
+        log_Str = f"For OppNumber: {oppNumber}, OpuNumber: {opuNumber}, EduNumber: {eduNumber}, ModelName: {modelName}, PartNumber: {partNumber}, RevisionNumber: {revisionNumber}, Component: {component}"
+        right_to_draw_logs.info(f"Check Designer and Verifier Record API View called for: {log_Str}")
+
+        try:
+            designer_record = CADDesignTemplates.objects.filter(**data).exists()
+            verifier_record = CADVerifierTemplates.objects.filter(**data).exists()
+            if designer_record and verifier_record:
+                return Response({"designer_exists": True, "verifier_exists": True}, status=status.HTTP_200_OK)
+            elif designer_record:
+                return Response({"designer_exists": True, "verifier_exists": False}, status=status.HTTP_200_OK)
+            else:
+                return Response({"designer_exists": False, "verifier_exists": False}, status=status.HTTP_200_OK)
+        except Exception as e:
+            error_log = f"Exception Occurred in Check Designer and Verifier Record API View -- user: {request.user} -- {str(e)} : for {log_Str}"
             right_to_draw_logs.info(error_log)
             right_to_draw_logs.error(error_log)
             return Response({"error": f"Exception occurred: {e}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
