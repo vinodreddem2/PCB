@@ -478,20 +478,3 @@ class UserCreatedTemplatesView(APIView):
             }
             for template in templates
         ]
-
-class ForgetPasswordView(APIView):
-
-    def post(self,request):
-        try:
-            
-            data= request.data
-            
-            response = reset_user_password(data)
-            
-            return Response(response.data, status=status.HTTP_200_OK)
-            
-        except Exception as e:
-            error_log = f"Exception Occurred in Forget Password API View -- user: {request.user} -- {str(e)}"
-            right_to_draw_logs.info(error_log)
-            right_to_draw_logs.error(error_log)
-            return Response({"error": f"Exception occurred: {e}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

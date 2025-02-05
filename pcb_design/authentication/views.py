@@ -55,4 +55,20 @@ class LogoutView(APIView):
             print(e)
             return Response({'error': 'Invalid token'}, status=status.HTTP_400_BAD_REQUEST)
 
+class ForgetPasswordView(APIView):
+
+    def post(self,request):
+        try:
             
+            data= request.data
+            
+            response = reset_user_password(data)
+            
+            if isinstance(response, dict) and "errors" in response:
+                return Response(
+                    response, status=response.get("status", status.HTTP_400_BAD_REQUEST)
+                )
+            
+            return Response(response.data, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"error": f"Exception occurred: {e}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)       
