@@ -146,6 +146,7 @@ def create_cad_template(data, user):
     component_id = data.get('component')
     component_specifications = data.get('componentSpecifications')
     design_options = data.get('designOptions')
+    secondary_sub_level = data.get('secondarySubLevel')
     
     right_to_draw_logs.info(f"Create CAD Template for component_id: {component_id}, component_specifications: {component_specifications}, design_options: {design_options}")
     try:
@@ -167,6 +168,7 @@ def create_cad_template(data, user):
         "component_Id": component.pk,
         "pcb_specifications": component_specifications,
         "smt_design_options": design_options,
+        "secondary_sub_level": secondary_sub_level,
         'created_by':user.pk,
         'updated_by': user.pk
     }
