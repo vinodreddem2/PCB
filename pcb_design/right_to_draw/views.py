@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from drf_yasg import openapi
 from authentication.custom_permissions import IsAuthorized
 from authentication.custom_authentication import CustomJWTAuthentication
-from .models import CADDesignTemplates
+from .models import CADDesignTemplates, CADVerifierTemplates, CADApproverTemplates
 from .services import get_categories_for_component_id, create_cad_template,\
     get_sub_categories_two_for_subcategory_id,  get_design_options_for_sub_category,get_design_rules_for_design_option,\
     get_verifier_fields_by_params, create_cad_verifier_template, compare_verifier_data_with_rules_and_designs, get_verifier_record, \
@@ -63,7 +63,6 @@ class SubCategoryTwoAPIView(APIView):
             return Response({"error": f"Exception Occurred {e}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-
 class DesignOptionAPIView(APIView):
     permission_classes = [IsAuthorized]
     authentication_classes = [CustomJWTAuthentication]
@@ -84,7 +83,6 @@ class DesignOptionAPIView(APIView):
             right_to_draw_logs.info(error_log)
             right_to_draw_logs.error(error_log)
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
 
 
 class DesignRuleAPIView(APIView):
@@ -268,7 +266,6 @@ class CADVerifierTemplateCreateAPIView(APIView):
             return Response({"error": f"Exception occurred: {e}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-
 class MstVerifierFieldResultAPIView(APIView):
     permission_classes = [IsAuthorized]
     authentication_classes = [CustomJWTAuthentication]
@@ -306,7 +303,6 @@ class MstVerifierFieldResultAPIView(APIView):
             right_to_draw_logs.info(error_log)
             right_to_draw_logs.error(error_log)
             return Response({"error": f"Exception occurred: {e}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
 
 
 class ApproverAPIView(APIView):
@@ -404,6 +400,84 @@ class ApproverAPIView(APIView):
             right_to_draw_logs.error(error_log)
             return Response({"error": f"Exception occurred: {e}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+
+class CheckDesignerAndVerifierRecordAPIView(APIView):
+    permission_classes = [IsAuthorized]
+    authentication_classes = [CustomJWTAuthentication]
+
+    def get(self, request):
+        oppNumber = request.query_params.get('oppNumber', None)
+        opuNumber = request.query_params.get('opuNumber', None)
+        eduNumber = request.query_params.get('eduNumber', None)
+        modelName = request.query_params.get('modelName', None)
+        partNumber = request.query_params.get('partNumber', None)
+        revisionNumber = request.query_params.get('revisionNumber', None)            
+        component = request.query_params.get('component', None)
+
+        data = {
+            'opp_number': oppNumber,
+            'opu_number': opuNumber,
+            'edu_number': eduNumber,
+            'model_name': modelName,
+            'part_number': partNumber,
+            'revision_number': revisionNumber,
+            'component_Id':component                 
+        }
+
+        log_Str = f"For OppNumber: {oppNumber}, OpuNumber: {opuNumber}, EduNumber: {eduNumber}, ModelName: {modelName}, PartNumber: {partNumber}, RevisionNumber: {revisionNumber}, Component: {component}"
+        right_to_draw_logs.info(f"Check Designer and Verifier Record API View called for: {log_Str}")
+
+        try:
+            designer_record = CADDesignTemplates.objects.filter(**data).exists()
+            verifier_record = CADVerifierTemplates.objects.filter(**data).exists()
+            approver_record = CADApproverTemplates.objects.filter(**data).exists()
+
+
+            return Response({"designer_exists": True if designer_record else False,
+                            "verifier_exists": True if verifier_record else False,
+                            "approver_exists": True if approver_record else False}, 
+                            status=status.HTTP_200_OK)
+        except Exception as e:
+            error_log = f"Exception Occurred in Check Designer and Verifier Record API View -- user: {request.user} -- {str(e)} : for {log_Str}"
+            right_to_draw_logs.info(error_log)
+            right_to_draw_logs.error(error_log)
+            return Response({"error": f"Exception occurred: {e}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class UserCreatedTemplatesView(APIView):
+    permission_classes = [IsAuthorized]
+
+    def get(self, request, *args, **kwargs):
+        user = request.user
+
+        # Get all the records created by the logged-in user
+        design_templates = CADDesignTemplates.objects.filter(created_by=user)
+        verifier_templates = CADVerifierTemplates.objects.filter(created_by=user)
+        approver_templates = CADApproverTemplates.objects.filter(created_by=user)
+
+        # Combine all the records (or return them in different responses as needed)
+        data = {
+            'design_templates': self.get_template_data(design_templates),
+            'verifier_templates': self.get_template_data(verifier_templates),
+            'approver_templates': self.get_template_data(approver_templates),
+        }
+
+        return Response(data, status=status.HTTP_200_OK)
+
+    def get_template_data(self, templates):
+        """Helper method to format the response data."""
+        return [
+            {
+                'oppNumber': template.opp_number,
+                'opuNumber': template.opu_number,
+                'eduNumber': template.edu_number,
+                'modelName': template.model_name,
+                'partNumber': template.part_number,
+                'revisionNumber': template.revision_number,
+                'component': template.component_Id.id,
+            }
+            for template in templates
+        ]
 
 class ForgetPasswordView(APIView):
 

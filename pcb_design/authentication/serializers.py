@@ -26,33 +26,45 @@ class RegisterSerializer(serializers.ModelSerializer):
     )
     password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
     password2 = serializers.CharField(write_only=True, required=True)
+    full_name = serializers.CharField(required=True) 
   
     class Meta:
         model = CustomUser
-        fields = ( 'password', 'password2', 'email')
+        fields = ( 'password', 'password2', 'email', 'full_name')
   
     def validate(self, attrs):
         if attrs['password'] != attrs['password2']:
             raise serializers.ValidationError({"password": "Password fields didn't match."})
 
+        if 'role' in attrs:
+            roles = attrs['role'].split(',')
+            attrs['role'] = [role.strip() for role in roles]
+
         return attrs
 
     def create(self, validated_data):
         user = CustomUser.objects.create(
-            email=validated_data['email'],
+            email=validated_data['email']
         )
-
-        
         user.set_password(validated_data['password'])
-        role = self.context.get('role', 'CADesigner')
-        print("vinod role is ", role)
-        if role not in valid_roles:
+        roles = self.context.get('role', 'CADesigner')
+        if isinstance(roles, str):
+            roles = [roles]
+        
+        is_valid_role_added = False 
+        for role in roles:
+            if role in valid_roles:
+                is_valid_role_added = True                
+                
+                group, created = Group.objects.get_or_create(name=role)
+                user.groups.add(group)
+        user.role = ", ".join(roles)
+        user.full_name = validated_data['full_name']
+        if not is_valid_role_added:
             role = 'CADesigner'
-        user.role = role
-        group, created = Group.objects.get_or_create(name=role)
-
-        # Assign the user to the group
-        user.groups.add(group)
+            group, created = Group.objects.get_or_create(name=role)
+            user.groups.add(group)           
+        
         user.save()
         
         return user
