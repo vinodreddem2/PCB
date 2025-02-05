@@ -1,7 +1,7 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from .CustomUserManager import CustomUserManager
-
+from masters.models import BaseModelMixin
 
 VALID_ROLES = [
         ('Admin', 'Admin'),
@@ -10,7 +10,7 @@ VALID_ROLES = [
         ('Verifier', 'Verifier'),
     ]
 
-class CustomUser(AbstractUser):  
+class CustomUser(AbstractUser,BaseModelMixin):  
     username = None
     email = models.EmailField(unique=True)
     is_logged_out = models.BooleanField(default=True)

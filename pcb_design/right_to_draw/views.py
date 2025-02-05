@@ -9,7 +9,7 @@ from .models import CADDesignTemplates
 from .services import get_categories_for_component_id, create_cad_template,\
     get_sub_categories_two_for_subcategory_id,  get_design_options_for_sub_category,get_design_rules_for_design_option,\
     get_verifier_fields_by_params, create_cad_verifier_template, compare_verifier_data_with_rules_and_designs, get_verifier_record, \
-    save_approver_results
+    save_approver_results,reset_user_password
 from drf_yasg.utils import swagger_auto_schema
 from .serializers import CADDesignTemplatesSerializer
 from . import right_to_draw_logs
@@ -400,6 +400,24 @@ class ApproverAPIView(APIView):
             return Response({"template_id":result.id}, status=200)
         except Exception as e:
             error_log = f"Exception Occurred in Approver API View -- user: {request.user} -- {str(e)}"
+            right_to_draw_logs.info(error_log)
+            right_to_draw_logs.error(error_log)
+            return Response({"error": f"Exception occurred: {e}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class ForgetPasswordView(APIView):
+
+    def post(self,request):
+        try:
+            
+            data= request.data
+            
+            response = reset_user_password(data)
+            
+            return Response(response.data, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            error_log = f"Exception Occurred in Forget Password API View -- user: {request.user} -- {str(e)}"
             right_to_draw_logs.info(error_log)
             right_to_draw_logs.error(error_log)
             return Response({"error": f"Exception occurred: {e}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

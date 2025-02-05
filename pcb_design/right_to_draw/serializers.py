@@ -1,6 +1,8 @@
 from rest_framework import serializers
 
 from .models import MstComponent
+from .authentication import CustomUser
+from django.contrib.auth.password_validation import validate_password
 from .models import CADDesignTemplates, CADVerifierTemplates,CADApproverTemplates
 from masters.models import MstSubCategory,MstCategory, MstSectionRules, MstSectionGroupings,MstSubCategoryTwo,\
     MstVerifierField
@@ -123,3 +125,27 @@ class CADApproverTemplateSerializer(serializers.ModelSerializer):
     class Meta:
         model = CADApproverTemplates
         fields = '__all__'
+        
+class ResetPasswordSerializer(serializers.ModelSerializer):
+    email = serializers.EmailField(required=True)
+    password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
+    password2 = serializers.CharField(write_only=True, required=True)
+  
+    class Meta:
+        model = CustomUser
+        fields = ( 'password', 'password2', 'email')
+    
+    
+    def validate(self, attrs):
+        if attrs['password'] != attrs['password2']:
+            raise serializers.ValidationError({"password": "Password fields didn't match."})
+
+        return attrs
+    
+    def update(self, instance, validated_data):
+        instance.set_password(validated_data['password'])
+        instance.save()
+        return instance
+    
+
+    

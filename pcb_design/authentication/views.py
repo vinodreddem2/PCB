@@ -6,6 +6,7 @@ from rest_framework import status
 
 from .custom_permissions import IsAuthorized
 from .serializers import RegisterSerializer
+from right_to_draw.services import reset_user_password
 
 
 class UserRegistrationView(APIView):
@@ -52,3 +53,5 @@ class LogoutView(APIView):
         except Exception as e:
             print(e)
             return Response({'error': 'Invalid token'}, status=status.HTTP_400_BAD_REQUEST)
+
+            
