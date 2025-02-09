@@ -124,7 +124,7 @@ if DATABASE_URL:
 # DATABASES = {
 #     'default': {
 #         'ENGINE': 'mssql',
-#         'NAME': os.getenv('DB_NAME', 'PCB'),
+#         'NAME': os.getenv('DB_NAME', 'PCB_NEW'),
 #         'USER': os.getenv('DB_USER', 'admin'),
 #         'PASSWORD': os.getenv('DB_PASSWORD', 'Server.2'),
 #         'HOST': os.getenv('DB_HOST', 'localhost\SQLEXPRESS'),
@@ -136,6 +136,7 @@ if DATABASE_URL:
 #             'use_legacy_date_fields': True,
 #         },
 #     },
+    
 # }
 
 
