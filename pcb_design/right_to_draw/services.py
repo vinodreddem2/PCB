@@ -15,7 +15,8 @@ from django.core.exceptions import ObjectDoesNotExist
 from authentication.models import CustomUser
 from . import right_to_draw_logs
 from rest_framework.exceptions import ValidationError
-from authentication.serializers import ForgotPasswordSerializer 
+from authentication.serializers import ForgotPasswordSerializer,GetUserSerializer,UpdateUserSerializer
+
 
 
 def get_categories_for_component_id(component_id, is_verifier=0):
@@ -795,3 +796,49 @@ def reset_user_password(data):
         raise HttpResponseServerError(
             f"An error occurred while fetching class details: {str(ex)}"
         )
+
+def get_users():
+    try:
+        users = CustomUser.objects.all()
+        if not users:
+            return Response({"error":"No users found","status":status.HTTP_404_NOT_FOUND})
+        serializer = GetUserSerializer(users, many=True)
+        return serializer.data
+    except Exception as ex:
+        right_to_draw_logs.error(f"An error occurred while fetching users: {str(ex)}")
+        right_to_draw_logs.info(f"An error occurred while fetching users: {str(ex)}")
+        raise HttpResponseServerError(f"An error occurred while fetching users: {str(ex)}")
+
+def update_user(data,pk):
+    try:
+        user = CustomUser.objects.get(pk=pk)
+        serializer = UpdateUserSerializer(user, data=data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return serializer.data
+    except CustomUser.DoesNotExist:
+        error_log = f"User with id {pk} does not exist."
+        right_to_draw_logs.info(error_log)
+        right_to_draw_logs.error(error_log)
+        return {"error": "User not found." ,"status":status.HTTP_404_NOT_FOUND}
+    except ValidationError as e:
+        return {"error": e.detail, "status": status.HTTP_400_BAD_REQUEST}
+    except Exception as ex:
+        right_to_draw_logs.error(f"An error occurred while updating user: {str(ex)}")
+        right_to_draw_logs.info(f"An error occurred while updating user: {str(ex)}")
+        raise HttpResponseServerError(f"An error occurred while updating user: {str(ex)}")
+                
+def delete_user(pk):
+    try:
+        user = CustomUser.objects.get(pk=pk)
+        user.delete()
+        return {"message": "User deleted successfully." ,"status":status.HTTP_200_OK}
+    except CustomUser.DoesNotExist:
+        error_log = f"User with id {pk} does not exist."
+        right_to_draw_logs.info(error_log)
+        right_to_draw_logs.error(error_log)
+        return {"error": "User not found." ,"status":status.HTTP_404_NOT_FOUND}
+    except Exception as ex:
+        right_to_draw_logs.error(f"An error occurred while deleting user: {str(ex)}")
+        right_to_draw_logs.info(f"An error occurred while deleting user: {str(ex)}")
+        return {"error": f"An error occurred while deleting user: {str(ex)}" ,"status":status.HTTP_500_INTERNAL_SERVER_ERROR}

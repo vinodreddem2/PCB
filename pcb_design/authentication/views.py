@@ -7,8 +7,7 @@ from rest_framework import status
 
 from .custom_permissions import IsAuthorized
 from .serializers import RegisterSerializer
-from right_to_draw.services import reset_user_password
-
+from right_to_draw.services import reset_user_password,get_users,update_user,delete_user
 class UserRegistrationView(APIView):
     permission_classes = [IsAuthorized]
     def post(self, request):
@@ -72,3 +71,23 @@ class ForgetPasswordView(APIView):
             return Response(response.data, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({"error": f"Exception occurred: {e}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class UserAPIView(APIView):
+    def get(self, request):
+        try:
+            response = get_users()
+            return Response(response, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"error": f"Exception occurred While Getting the Users: {e}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)    
+    def put(self, request, pk):
+        try:
+            response = update_user(request.data,pk)
+            return Response(response, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"error": f"Exception occurred While Updating the User: {e}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    def delete(self, request, pk):
+        try:    
+            response = delete_user(pk)
+            return Response(response)
+        except Exception as e:
+            return Response({"error": f"Exception occurred While Deleting the User: {e}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
